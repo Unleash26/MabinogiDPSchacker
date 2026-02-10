@@ -58,6 +58,8 @@ export default function AnalyticsMenu({ start_ut, end_ut }) {
 
     // スキル別ダメージ
     const [skillDamageData, setSkillDamageData] = useState([]);
+    const [groupedSkillDamageData, setGroupedSkillDamageData] = useState([]);
+    const [selectedSkillPlayer, setSelectedSkillPlayer] = useState("__all__");
 
 
     useEffect(() => {
@@ -236,6 +238,13 @@ export default function AnalyticsMenu({ start_ut, end_ut }) {
             })
             .catch(error => console.error('Skill damage error:', error));
 
+        fetch(`http://${window.location.hostname}:5004/Home/GetDamageBySkillGroupedByPlayers?start_ut=${start_ut}&end_ut=${end_ut}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data) setGroupedSkillDamageData(data);
+            })
+            .catch(error => console.error('Grouped Skill damage error:', error));
+
         getDamageBands()
     }, [start_ut, end_ut, burstCount, largestDamageInstanceCount]);
 
@@ -310,7 +319,12 @@ export default function AnalyticsMenu({ start_ut, end_ut }) {
                 </Grid>
                 { /* Skill Damage Pie Chart */}
                 <Grid size={{ xs: 12, sm: 12, lg: 8, xl: 4 }} >
-                    <SkillDamagePieChart data={skillDamageData} />
+                    <SkillDamagePieChart
+                        data={selectedSkillPlayer === "__all__" ? skillDamageData : (groupedSkillDamageData.find(p => p.playerId === selectedSkillPlayer)?.skills || [])}
+                        selectedPlayer={selectedSkillPlayer}
+                        onPlayerChange={setSelectedSkillPlayer}
+                        players={damagePieChartData.map(d => ({ id: d.id, name: d.label }))}
+                    />
                 </Grid>
                 { /* Trim Line Graph */}
                 <Grid size={12} >

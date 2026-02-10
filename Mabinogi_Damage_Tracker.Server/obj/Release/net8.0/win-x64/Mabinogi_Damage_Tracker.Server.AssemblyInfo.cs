@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Mabinogi_Damage_Tracker.Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7dcd3b2cd8c819b166c05695c593bf179a908c8b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8854513ec25d4b753dd4d65b635b61510f2b53d9")]
 [assembly: System.Reflection.AssemblyProductAttribute("Mabinogi_Damage_Tracker.Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Mabinogi_Damage_Tracker.Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
