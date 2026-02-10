@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Web site created using create-react-app"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <title>マビノギ雑魚チェッカー</title>
+
+<style>
+      /* 1. Chrome用おまじない */
+      :root { color-scheme: dark !important; }
+
+      /* 2. 【修正】大元の背景（一番奥） */
+      /* ここから .MuiBox-root を削除しました！これで巨大化が直ります */
+      html, body, #root {
+        background-color: #0a0a0a !important; /* ほぼ真っ黒 */
+        color: #e0e0e0 !important;
+        min-height: 100vh;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* 3. 【修正】カード・パネル（手前）を少し明るくして立体感を出す */
+      .MuiPaper-root, .MuiCard-root, .MuiTable-root, .MuiDataGrid-root,
+      .MuiAccordion-root {
+          background-color: #1e1e1e !important; /* 背景より少し明るいグレー */
+          background-image: none !important;
+          border: 1px solid #333 !important;     /* 薄い枠線をつけて境界をはっきりさせる */
+          box-shadow: 0px 4px 6px rgba(0,0,0,0.5) !important; /* 影を少し復活させる */
+      }
+
+      /* 4. Chromeの白い帯（テーブルヘッダーなど）対策 */
+      .MuiTableHead-root, .MuiTableCell-head, th {
+          background-color: #1e1e1e !important;
+          color: #e0e0e0 !important;
+          border-bottom: 1px solid #444 !important;
+      }
+      
+
+      /* 行（tr）自体の背景を透明（またはダーク）に強制する */
+      tr, .MuiTableRow-root {
+          background-color: transparent !important; 
+          color: inherit !important;
+      }
+
+      /* 偶数行や奇数行で「白」が混ざるのを防ぐ（縞模様対策） */
+      tr:nth-of-type(odd), .MuiTableRow-root:nth-of-type(odd) {
+          background-color: rgba(255, 255, 255, 0.03) !important; /* ほんのり明るくするだけ */
+      }
+
+      /* マウスを乗せた時（ホバー）に白くなるのを防ぐ */
+      tr:hover, .MuiTableRow-root:hover {
+          background-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      
+      /* ▲▲▲▲▲ ここまで追加 ▲▲▲▲▲ */
+
+      /* 5. テーブルの中身やセルの線（元々あったやつ） */
+      td, .MuiTableCell-body, .MuiDataGrid-cell {
+          border-bottom: 1px solid #333 !important;
+          color: #e0e0e0 !important;
+      }
+
+    /* 6. 【最終修正版】文字色・ログカラー保護設定 */
+      
+      /* ① ベースの文字色は body で指定（強制しない） */
+      body, #root {
+          color: #e0e0e0;
+      }
+
+      /* ② 個々の要素は「親の色を引き継ぐ」設定にする */
+      /* ここから !important を削除しました！これでログの色（span style="..."）が復活します */
+      
+
+      /* ③ リンクは青 */
+      a {
+          color: #90caf9 !important;
+          text-decoration: none;
+      }
+      a:hover {
+          text-decoration: underline;
+      }
+
+      /* ④ 入力フォームの中だけは白くする（これがないと黒くて見えない） */
+      input, textarea, select, .MuiInputBase-input {
+          color: #ffffff !important;
+          -webkit-text-fill-color: #ffffff !important;
+      }
+      
+      /* 8. グラフ保護 */
+      .recharts-responsive-container {
+        min-width: 100px;
+        min-height: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    
+    <div id="root"></div>
+    </body>
+</html>

@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ★以下を追加！これはTailwindのチェックを受けないので絶対に消されません★ */
+
+/* 全体の背景を強制的に黒にする */
+body, #root {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* グラフなどのコンテナに強制的にサイズを与える */
+/* これで <rect> width negative エラーが消えます */
+.recharts-responsive-container {
+  min-width: 100px;
+  min-height: 100px;
+}

@@ -1,0 +1,10 @@
+{
+"SpaProxyServer": {
+"ServerUrl": "https://localhost:5004",
+"RedirectUrl": "",
+"LaunchCommand": "npm run dev",
+"WorkingDirectory": "E:\\Mabinogi-Damage-Tracker-1.0\\Mabinogi_Damage_Tracker.Server\\..\\Mabinogi_Damage_Tracker.client",
+"MaxTimeoutInSeconds": "120",
+"KeepRunning": "false"
+}
+}

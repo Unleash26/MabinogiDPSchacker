@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "mwjDrXhsaIViuBxXq3XSEiLjPObIzNUoZVWo2ry+VYo=",
+  "Source": "Mabinogi_Damage_Tracker.Server",
+  "BasePath": "_content/Mabinogi_Damage_Tracker.Server",
+  "Mode": "Default",
+  "ManifestType": "Publish",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

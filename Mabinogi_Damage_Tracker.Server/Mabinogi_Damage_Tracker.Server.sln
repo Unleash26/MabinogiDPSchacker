@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mabinogi_Damage_Tracker.Server", "Mabinogi_Damage_Tracker.Server.csproj", "{84CC369F-DB39-6F97-A702-1AD6601FF0B1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{84CC369F-DB39-6F97-A702-1AD6601FF0B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84CC369F-DB39-6F97-A702-1AD6601FF0B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84CC369F-DB39-6F97-A702-1AD6601FF0B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84CC369F-DB39-6F97-A702-1AD6601FF0B1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {22195DB9-3404-44A6-B682-0B9EF7D6C58E}
+	EndGlobalSection
+EndGlobal
