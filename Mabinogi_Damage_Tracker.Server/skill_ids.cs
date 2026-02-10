@@ -934,8 +934,6 @@ namespace Mabinogi_Damage_Tracker
             SuperWindmill = 65002,
             BlockWorldGMSkill = 65003,
             AdministrativePicking2 = 65006,
-            IgnusPlume = 59060,
-            HydroPierce = 59061,
     }
     
 }
