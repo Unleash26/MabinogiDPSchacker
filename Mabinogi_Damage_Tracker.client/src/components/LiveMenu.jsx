@@ -345,55 +345,12 @@ export default function LiveMenu() {
                     <PlayerDamageGauge value={DPS} averageDPS={averageDPS} />
                 </Grid>
                 <Grid item size={{ xs: 12, sm: 12, lg: 12, xl: 8 }}>
-                    {/* キャラクター選択プルダウン */}
-                    <Box sx={{ mb: 1 }}>
-                        <FormControl size="small" sx={{ minWidth: 200 }}>
-                            <Select
-                                value={selectedPlayer}
-                                onChange={(e) => setSelectedPlayer(e.target.value)}
-                                sx={{
-                                    ...fontStyle,
-                                    color: '#FFFFFF',
-                                    backgroundColor: '#2C2C2E',
-                                    borderRadius: '12px',
-                                    fontSize: '14px',
-                                    fontWeight: 600,
-                                    '.MuiOutlinedInput-notchedOutline': {
-                                        borderColor: 'rgba(255,255,255,0.15)',
-                                    },
-                                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: 'rgba(255,255,255,0.3)',
-                                    },
-                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: '#5D95FC',
-                                    },
-                                    '.MuiSvgIcon-root': {
-                                        color: '#A1A1A6',
-                                    },
-                                }}
-                                MenuProps={{
-                                    PaperProps: {
-                                        sx: {
-                                            backgroundColor: '#2C2C2E',
-                                            borderRadius: '12px',
-                                            border: '1px solid rgba(255,255,255,0.1)',
-                                            mt: 0.5,
-                                        },
-                                    },
-                                }}
-                            >
-                                <MenuItem value="__all__" sx={{ ...fontStyle, color: '#FFFFFF', fontSize: '14px', '&:hover': { backgroundColor: 'rgba(255,255,255,0.08)' } }}>
-                                    全員
-                                </MenuItem>
-                                {playerList.map(p => (
-                                    <MenuItem key={p.id} value={p.id} sx={{ ...fontStyle, color: '#FFFFFF', fontSize: '14px', '&:hover': { backgroundColor: 'rgba(255,255,255,0.08)' } }}>
-                                        {p.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Box>
-                    <SkillDamagePieChart data={filteredSkillData} />
+                    <SkillDamagePieChart
+                        data={filteredSkillData}
+                        selectedPlayer={selectedPlayer}
+                        onPlayerChange={setSelectedPlayer}
+                        players={playerList}
+                    />
                 </Grid>
             </Grid>
         </Box>

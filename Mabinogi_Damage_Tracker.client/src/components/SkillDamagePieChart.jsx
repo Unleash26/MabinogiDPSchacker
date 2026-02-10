@@ -1,12 +1,14 @@
 import * as React from 'react';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { useDrawingArea } from '@mui/x-charts/hooks';
-import { useSeries } from '@mui/x-charts/hooks';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import CircleIcon from '@mui/icons-material/Circle';
 import { styled } from '@mui/material/styles';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
 
 const fontStyle = {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif',
@@ -16,7 +18,7 @@ const settings = {
     margin: { right: 5 },
     width: 225,
     height: 225,
-    hideLegend: false,
+    legend: { hidden: true },
 };
 
 const customColors = [
@@ -37,44 +39,28 @@ function formatLargeNumber(num) {
     return formatted.replace(/\.0(?=[A-Z])/, '');
 }
 
-function CustomLegend() {
-    const series = useSeries();
-    if (!series.pie || !series.pie.seriesOrder || series.pie.seriesOrder.length === 0) {
-        return null;
-    }
-    const firstSeriesId = series.pie.seriesOrder[0];
-    const firstSeriesData = series.pie.series[firstSeriesId].data;
-
-    // 全スキルの合計ダメージを算出
-    const totalValue = firstSeriesData.reduce((sum, item) => sum + (item.value || 0), 0);
-
+function LegendItem({ item, totalValue }) {
+    const percentage = totalValue > 0 ? ((item.value / totalValue) * 100).toFixed(1) : '0.0';
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, marginLeft: "12px", maxHeight: '200px', overflowY: 'auto', pr: 1 }}>
-            {firstSeriesData.map((item) => {
-                const percentage = totalValue > 0 ? ((item.value / totalValue) * 100).toFixed(1) : '0.0';
-                return (
-                    <Box
-                        key={item.id}
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            width: '100%',
-                        }}
-                    >
-                        <Box sx={{ display: 'flex', alignItems: 'center', marginRight: 2 }}>
-                            <CircleIcon sx={{ color: item.color ?? 'gray', fontSize: 10, marginRight: '8px' }} />
-                            <Typography variant="body2" sx={{ ...fontStyle, fontWeight: 600, fontSize: '13px', color: '#FFFFFF' }}>
-                                {item.label}
-                            </Typography>
-                        </Box>
-                        <Typography variant="body2" sx={{ ...fontStyle, fontWeight: 700, fontSize: '13px', color: '#A1A1A6', whiteSpace: 'nowrap' }}>
-                            {formatLargeNumber(item.value)} ({percentage}%)
-                        </Typography>
-                    </Box>
-                );
-            })}
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'flex-start', // space-between から flex-start に変更
+                width: '100%',
+                mb: 0.5 // 行間も少し詰める
+            }}
+        >
+            <Box sx={{ display: 'flex', alignItems: 'center', marginRight: 2, minWidth: '120px' }}> {/* スキル名エリアに最小幅を持たせて揃える */}
+                <CircleIcon sx={{ color: item.color ?? 'gray', fontSize: 10, marginRight: '8px', flexShrink: 0 }} />
+                <Typography variant="body2" sx={{ ...fontStyle, fontWeight: 600, fontSize: '13px', color: '#FFFFFF', whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {item.label}
+                </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ ...fontStyle, fontWeight: 700, fontSize: '13px', color: '#A1A1A6', whiteSpace: 'nowrap' }}>
+                {formatLargeNumber(item.value)} ({percentage}%)
+            </Typography>
         </Box>
     );
 }
@@ -95,14 +81,7 @@ function PieCenterLabel({ children }) {
     );
 }
 
-/**
- * スキル別ダメージを円グラフで表示
- * 
- * Props:
- * - data: APIから取得したスキル別ダメージデータ
- *   [{skillId, skillName, damage}]
- */
-export default function SkillDamagePieChart({ data }) {
+export default function SkillDamagePieChart({ data, selectedPlayer, onPlayerChange, players }) {
     const [translations, setTranslations] = React.useState({});
 
     // 翻訳ファイルを読み込み
@@ -117,49 +96,18 @@ export default function SkillDamagePieChart({ data }) {
             .catch(err => console.error('Failed to load skill translations:', err));
     }, []);
 
-    // スキル名を翻訳する関数
     const translateSkillName = (skillName) => {
-        // 翻訳があればそれを使用、なければ元の名前
         return translations[skillName] || skillName;
     };
 
-    // データがない場合の表示
-    if (!data || data.length === 0) {
-        return (
-            <Paper
-                elevation={0}
-                sx={{
-                    padding: "24px",
-                    height: "100%",
-                    borderRadius: '24px',
-                    backgroundColor: '#1C1C1E',
-                    boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.5)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                }}
-            >
-                <Typography variant="h6" sx={{ ...fontStyle, fontWeight: '700', color: '#FFFFFF', mb: 1 }}>
-                    スキル別ダメージ
-                </Typography>
-                <Typography variant="body2" sx={{ ...fontStyle, color: '#A1A1A6' }}>
-                    データがありません
-                </Typography>
-            </Paper>
-        );
-    }
+    const totalDamage = data ? data.reduce((prev, curr) => prev + curr.damage, 0) : 0;
 
-    const totalDamage = data.reduce((prev, curr) => prev + curr.damage, 0);
-
-    // 円グラフ用データに変換（翻訳を適用）
-    const chartData = data.map((item, index) => ({
+    const chartData = (data || []).map((item, index) => ({
         id: index,
         label: translateSkillName(item.skillName),
         value: item.damage,
+        color: customColors[index % customColors.length]
     }));
-
 
     return (
         <Paper
@@ -173,35 +121,97 @@ export default function SkillDamagePieChart({ data }) {
                 border: '1px solid rgba(255,255,255,0.1)',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'center'
             }}
         >
-            <Typography variant="h6" sx={{ ...fontStyle, fontWeight: '700', color: '#FFFFFF', mb: 1 }}>
-                スキル別ダメージ
-            </Typography>
+            {/* Header: Title and Dropdown */}
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                <Typography variant="h6" sx={{ ...fontStyle, fontWeight: '700', color: '#FFFFFF' }}>
+                    スキル別ダメージ
+                </Typography>
 
-            <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <PieChart
-                    series={[
-                        {
-                            data: chartData,
-                            innerRadius: 65,
-                            outerRadius: 100,
-                            paddingAngle: 2,
-                            cornerRadius: 4,
-                            highlightScope: { fade: 'global', highlight: 'item' },
-                            faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
-                        },
-                    ]}
-                    slots={{
-                        legend: (props) => <CustomLegend {...props} />,
-                    }}
-                    colors={customColors}
-                    {...settings}
-                >
-                    {totalDamage > 0 ? <PieCenterLabel>{formatLargeNumber(totalDamage)}</PieCenterLabel> : <></>}
-                </PieChart>
+                {onPlayerChange && (
+                    <FormControl size="small">
+                        <Select
+                            value={selectedPlayer}
+                            onChange={(e) => onPlayerChange(e.target.value)}
+                            sx={{
+                                ...fontStyle,
+                                color: '#FFFFFF',
+                                backgroundColor: '#2C2C2E',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                height: '32px',
+                                '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.15)' },
+                                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' },
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#5D95FC' },
+                                '.MuiSvgIcon-root': { color: '#A1A1A6' },
+                            }}
+                            MenuProps={{
+                                PaperProps: {
+                                    sx: {
+                                        backgroundColor: '#2C2C2E',
+                                        borderRadius: '12px',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        mt: 0.5,
+                                    },
+                                },
+                            }}
+                        >
+                            <MenuItem value="__all__" sx={{ ...fontStyle, color: '#FFFFFF', fontSize: '12px', '&:hover': { backgroundColor: 'rgba(255,255,255,0.08)' } }}>
+                                全員
+                            </MenuItem>
+                            {players && players.map(p => (
+                                <MenuItem key={p.id} value={p.id} sx={{ ...fontStyle, color: '#FFFFFF', fontSize: '12px', '&:hover': { backgroundColor: 'rgba(255,255,255,0.08)' } }}>
+                                    {p.name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                )}
             </Box>
+
+            {(!data || data.length === 0) ? (
+                <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Typography variant="body2" sx={{ ...fontStyle, color: '#A1A1A6' }}>
+                        データがありません
+                    </Typography>
+                </Box>
+            ) : (
+                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    {/* Chart Area - Left */}
+                    <Box sx={{ width: 210, height: 210, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <PieChart
+                            series={[
+                                {
+                                    data: chartData,
+                                    innerRadius: 60,
+                                    outerRadius: 95,
+                                    paddingAngle: 2,
+                                    cornerRadius: 4,
+                                    highlightScope: { fade: 'global', highlight: 'item' },
+                                    faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
+                                    arcLabel: null, // ラベルが出ないように明示
+                                },
+                            ]}
+                            colors={customColors}
+                            margin={{ right: 0, left: 0, top: 0, bottom: 0 }}
+                            slots={{ legend: () => null }} // デフォルト凡例を強制的に消す
+                            width={210}
+                            height={210}
+                        >
+                            {totalDamage > 0 ? <PieCenterLabel>{formatLargeNumber(totalDamage)}</PieCenterLabel> : <></>}
+                        </PieChart>
+                    </Box>
+
+                    {/* Custom Legend - Right (Takes remaining space) */}
+                    <Box sx={{ ml: 4, overflowY: "auto", flexGrow: 1, maxHeight: 210, pr: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        {chartData.map((item) => (
+                            <LegendItem key={item.id} item={item} totalValue={totalDamage} />
+                        ))}
+                    </Box>
+                </Box>
+            )}
         </Paper>
     );
 }
