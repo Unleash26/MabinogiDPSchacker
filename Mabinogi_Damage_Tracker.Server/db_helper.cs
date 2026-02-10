@@ -1167,7 +1167,7 @@ namespace Mabinogi_Damage_tracker
 
                             string skillName = Enum.IsDefined(typeof(SkillId), (ushort)skillId)
                                 ? ((SkillId)skillId).ToString()
-                                : $"Unknown_{skillId}";
+                                : $"Unknown_Skill_{skillId}";
 
                             result.Add(new
                             {

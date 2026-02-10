@@ -4,7 +4,7 @@
   "success": true,
   "projectFilePath": "E:\\Mabinogi-Damage-Tracker-1.0\\Mabinogi_Damage_Tracker.Server\\Mabinogi_Damage_Tracker.Server.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\tera\\.nuget\\packages\\microsoft.aspnetcore.spaproxy\\8.0.23\\microsoft.aspnetcore.spaproxy.8.0.23.nupkg.sha512",
+    "C:\\Users\\tera\\.nuget\\packages\\microsoft.aspnetcore.spaproxy\\8.0.24\\microsoft.aspnetcore.spaproxy.8.0.24.nupkg.sha512",
     "C:\\Users\\tera\\.nuget\\packages\\microsoft.data.sqlite\\9.0.10\\microsoft.data.sqlite.9.0.10.nupkg.sha512",
     "C:\\Users\\tera\\.nuget\\packages\\microsoft.data.sqlite.core\\9.0.10\\microsoft.data.sqlite.core.9.0.10.nupkg.sha512",
     "C:\\Users\\tera\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",

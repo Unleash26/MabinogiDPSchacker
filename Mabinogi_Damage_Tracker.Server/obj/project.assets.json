@@ -2,7 +2,7 @@
   "version": 3,
   "targets": {
     "net8.0": {
-      "Microsoft.AspNetCore.SpaProxy/8.0.23": {
+      "Microsoft.AspNetCore.SpaProxy/8.0.24": {
         "type": "package",
         "compile": {
           "lib/net8.0/Microsoft.AspNetCore.SpaProxy.dll": {}
@@ -357,7 +357,7 @@
       }
     },
     "net8.0/win-x64": {
-      "Microsoft.AspNetCore.SpaProxy/8.0.23": {
+      "Microsoft.AspNetCore.SpaProxy/8.0.24": {
         "type": "package",
         "compile": {
           "lib/net8.0/Microsoft.AspNetCore.SpaProxy.dll": {}
@@ -624,10 +624,10 @@
     }
   },
   "libraries": {
-    "Microsoft.AspNetCore.SpaProxy/8.0.23": {
-      "sha512": "g7whRdNtTf+ngEbr1HMeb4hzR5JWDeTOcycZFp6vPb1GYN8KLeqPdR/nmmbs6r8yxFqh4VTcoPSSexFS8ZiX0A==",
+    "Microsoft.AspNetCore.SpaProxy/8.0.24": {
+      "sha512": "Rp0r2Ie9zd8k+TYV10TYDGxu+fLoQoOtd8lRyRvaM/SK2BqqtG0k5JewmUJsYXu6jy5mXc9vuNydQb5AjFrz1g==",
       "type": "package",
-      "path": "microsoft.aspnetcore.spaproxy/8.0.23",
+      "path": "microsoft.aspnetcore.spaproxy/8.0.24",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -635,7 +635,7 @@
         "THIRD-PARTY-NOTICES.TXT",
         "build/Microsoft.AspNetCore.SpaProxy.targets",
         "lib/net8.0/Microsoft.AspNetCore.SpaProxy.dll",
-        "microsoft.aspnetcore.spaproxy.8.0.23.nupkg.sha512",
+        "microsoft.aspnetcore.spaproxy.8.0.24.nupkg.sha512",
         "microsoft.aspnetcore.spaproxy.nuspec"
       ]
     },
