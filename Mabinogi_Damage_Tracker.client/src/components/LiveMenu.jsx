@@ -344,7 +344,7 @@ export default function LiveMenu() {
                 <Grid item size={{ xs: 12, sm: 12, lg: 8, xl: 4 }}>
                     <PlayerDamageGauge value={DPS} averageDPS={averageDPS} />
                 </Grid>
-                <Grid item size={{ xs: 12, sm: 12, lg: 12, xl: 4 }}>
+                <Grid item size={{ xs: 12, sm: 12, lg: 12, xl: 8 }}>
                     {/* キャラクター選択プルダウン */}
                     <Box sx={{ mb: 1 }}>
                         <FormControl size="small" sx={{ minWidth: 200 }}>

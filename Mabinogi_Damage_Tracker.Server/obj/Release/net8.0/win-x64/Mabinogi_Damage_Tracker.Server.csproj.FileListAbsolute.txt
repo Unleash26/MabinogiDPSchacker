@@ -367,3 +367,9 @@ E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\Release\net8.0
 E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\Release\net8.0\win-x64\dist\appsettings.Development.json
 E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\Release\net8.0\win-x64\dist\appsettings.json
 E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\obj\Release\net8.0\win-x64\Mabinogi_Damage_Tracker.Server.sourcelink.json
+E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\Release\net8.0\win-x64\publish_standalone\dist\web.config
+E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\Release\net8.0\win-x64\publish_standalone\web.config
+E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\Release\net8.0\win-x64\publish_standalone\appsettings.Development.json
+E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\Release\net8.0\win-x64\publish_standalone\appsettings.json
+E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\Release\net8.0\win-x64\publish_standalone\dist\appsettings.Development.json
+E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\Release\net8.0\win-x64\publish_standalone\dist\appsettings.json
