@@ -11,6 +11,9 @@ import LinearProgress from '@mui/material/LinearProgress';
 import LogStream from './LogStream';
 import PlayerDamageGauge from './PlayerDamageGauge';
 import SkillDamagePieChart from './SkillDamagePieChart';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
 
 const fontStyle = {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif'
@@ -61,6 +64,10 @@ export default function LiveMenu() {
 
     // スキル別ダメージ機能
     const [skillDamageData, setSkillDamageData] = useState([]);
+    // プレイヤー別スキルダメージを保持
+    const [skillDamageByPlayer, setSkillDamageByPlayer] = useState({});
+    // キャラクター選択用
+    const [selectedPlayer, setSelectedPlayer] = useState('__all__');
 
     async function GetNewDamageData(lastId) {
         await fetch(`http://${window.location.hostname}:5004/Home/GetAllDamagesGroupedByPlayersAfterId?lastFetchedId=${lastId}`)
@@ -142,12 +149,31 @@ export default function LiveMenu() {
             })
             .catch(error => console.error('Error:', error));
 
-        // スキル別ダメージを取得（全プレイヤー合計）
+        // スキル別ダメージを取得（プレイヤーごとに保持）
         await fetch(`http://${window.location.hostname}:5004/Home/GetDamageBySkillAfterId?lastFetchedId=${lastId}`)
             .then(response => response.json())
             .then(res => {
                 if (!res || !res.data) return;
-                // スキルごとにダメージを集計（プレイヤー関係なく）
+
+                // プレイヤー別スキルダメージを更新
+                setSkillDamageByPlayer(prev => {
+                    const updated = { ...prev };
+                    res.data.forEach(player => {
+                        const playerId = player.playerId;
+                        const playerName = playerNames[playerId] || player.playerName || `Player ${playerId}`;
+                        if (!updated[playerId]) {
+                            updated[playerId] = { playerName, skills: {} };
+                        }
+                        updated[playerId].playerName = playerName;
+                        (player.skills || []).forEach(skill => {
+                            updated[playerId].skills[skill.skillName] =
+                                (updated[playerId].skills[skill.skillName] || 0) + skill.damage;
+                        });
+                    });
+                    return updated;
+                });
+
+                // 全体集計も更新
                 setSkillDamageData(prev => {
                     const skillMap = new Map(prev.map(s => [s.skillName, s.damage]));
                     res.data.forEach(player => {
@@ -160,7 +186,7 @@ export default function LiveMenu() {
                         .sort((a, b) => b.damage - a.damage);
                 });
             })
-            .catch(error => console.error('Skill damage error:', error));
+            .catch(error => console.error('スキルダメージ取得エラー:', error));
     }
 
     useEffect(() => {
@@ -169,6 +195,8 @@ export default function LiveMenu() {
         setTotalDamage(0)
         setDamageOverTimeData([])
         setSkillDamageData([])
+        setSkillDamageByPlayer({})
+        setSelectedPlayer('__all__')
 
         const poll = async () => {
             await GetNewDamageData(lastFetchedIdRef.current);
@@ -218,6 +246,24 @@ export default function LiveMenu() {
 
         setRecording(prev => !prev)
     }
+
+    // 選択されたプレイヤーに応じてスキルデータをフィルタ
+    const filteredSkillData = (() => {
+        if (selectedPlayer === '__all__') {
+            return skillDamageData;
+        }
+        const playerData = skillDamageByPlayer[selectedPlayer];
+        if (!playerData) return [];
+        return Object.entries(playerData.skills)
+            .map(([skillName, damage]) => ({ skillName, damage }))
+            .sort((a, b) => b.damage - a.damage);
+    })();
+
+    // プルダウン用のプレイヤーリスト
+    const playerList = Object.entries(skillDamageByPlayer).map(([id, data]) => ({
+        id,
+        name: playerNames[id] || data.playerName || `Player ${id}`,
+    }));
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: '100%' }}>
@@ -299,7 +345,55 @@ export default function LiveMenu() {
                     <PlayerDamageGauge value={DPS} averageDPS={averageDPS} />
                 </Grid>
                 <Grid item size={{ xs: 12, sm: 12, lg: 12, xl: 4 }}>
-                    <SkillDamagePieChart data={skillDamageData} />
+                    {/* キャラクター選択プルダウン */}
+                    <Box sx={{ mb: 1 }}>
+                        <FormControl size="small" sx={{ minWidth: 200 }}>
+                            <Select
+                                value={selectedPlayer}
+                                onChange={(e) => setSelectedPlayer(e.target.value)}
+                                sx={{
+                                    ...fontStyle,
+                                    color: '#FFFFFF',
+                                    backgroundColor: '#2C2C2E',
+                                    borderRadius: '12px',
+                                    fontSize: '14px',
+                                    fontWeight: 600,
+                                    '.MuiOutlinedInput-notchedOutline': {
+                                        borderColor: 'rgba(255,255,255,0.15)',
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: 'rgba(255,255,255,0.3)',
+                                    },
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: '#5D95FC',
+                                    },
+                                    '.MuiSvgIcon-root': {
+                                        color: '#A1A1A6',
+                                    },
+                                }}
+                                MenuProps={{
+                                    PaperProps: {
+                                        sx: {
+                                            backgroundColor: '#2C2C2E',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            mt: 0.5,
+                                        },
+                                    },
+                                }}
+                            >
+                                <MenuItem value="__all__" sx={{ ...fontStyle, color: '#FFFFFF', fontSize: '14px', '&:hover': { backgroundColor: 'rgba(255,255,255,0.08)' } }}>
+                                    全員
+                                </MenuItem>
+                                {playerList.map(p => (
+                                    <MenuItem key={p.id} value={p.id} sx={{ ...fontStyle, color: '#FFFFFF', fontSize: '14px', '&:hover': { backgroundColor: 'rgba(255,255,255,0.08)' } }}>
+                                        {p.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Box>
+                    <SkillDamagePieChart data={filteredSkillData} />
                 </Grid>
             </Grid>
         </Box>

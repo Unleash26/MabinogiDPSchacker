@@ -45,30 +45,36 @@ function CustomLegend() {
     const firstSeriesId = series.pie.seriesOrder[0];
     const firstSeriesData = series.pie.series[firstSeriesId].data;
 
+    // 全スキルの合計ダメージを算出
+    const totalValue = firstSeriesData.reduce((sum, item) => sum + (item.value || 0), 0);
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, marginLeft: "12px", maxHeight: '200px', overflowY: 'auto', pr: 1 }}>
-            {firstSeriesData.map((item) => (
-                <Box
-                    key={item.id}
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        width: '100%',
-                    }}
-                >
-                    <Box sx={{ display: 'flex', alignItems: 'center', marginRight: 2 }}>
-                        <CircleIcon sx={{ color: item.color ?? 'gray', fontSize: 10, marginRight: '8px' }} />
-                        <Typography variant="body2" sx={{ ...fontStyle, fontWeight: 600, fontSize: '13px', color: '#FFFFFF' }}>
-                            {item.label}
+            {firstSeriesData.map((item) => {
+                const percentage = totalValue > 0 ? ((item.value / totalValue) * 100).toFixed(1) : '0.0';
+                return (
+                    <Box
+                        key={item.id}
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            width: '100%',
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', alignItems: 'center', marginRight: 2 }}>
+                            <CircleIcon sx={{ color: item.color ?? 'gray', fontSize: 10, marginRight: '8px' }} />
+                            <Typography variant="body2" sx={{ ...fontStyle, fontWeight: 600, fontSize: '13px', color: '#FFFFFF' }}>
+                                {item.label}
+                            </Typography>
+                        </Box>
+                        <Typography variant="body2" sx={{ ...fontStyle, fontWeight: 700, fontSize: '13px', color: '#A1A1A6', whiteSpace: 'nowrap' }}>
+                            {formatLargeNumber(item.value)} ({percentage}%)
                         </Typography>
                     </Box>
-                    <Typography variant="body2" sx={{ ...fontStyle, fontWeight: 700, fontSize: '13px', color: '#A1A1A6' }}>
-                        {formatLargeNumber(item.value)}
-                    </Typography>
-                </Box>
-            ))}
+                );
+            })}
         </Box>
     );
 }
