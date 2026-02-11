@@ -405,11 +405,16 @@
         }
 
         function resolvePlayerName(label, playerId) {
-            // First try: look up by playerId in the name map
-            if (playerId && playerNameMap[String(playerId)]) {
-                const mapped = playerNameMap[String(playerId)];
+            const pidStr = String(playerId);
+            // First try: look up by playerId in the name map (DB/Custom)
+            if (playerId && playerNameMap[pidStr]) {
+                const mapped = playerNameMap[pidStr];
                 // Only use if it's not a placeholder
                 if (!mapped.startsWith('<') || !mapped.endsWith('>')) return mapped;
+            }
+            // Second try: look up in knownPlayerNames (from Skill Data)
+            if (playerId && knownPlayerNames[pidStr]) {
+                return knownPlayerNames[pidStr];
             }
             // Second try: if label is a placeholder, use first non-placeholder name from the map
             if (label && label.startsWith('<') && label.endsWith('>')) {
