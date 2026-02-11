@@ -57,21 +57,7 @@
             letter-spacing: 0.3px;
         }
 
-        .player-select {
-            background: rgba(255, 255, 255, 0.1);
-            color: #e0e0e0;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
-            padding: 2px 6px;
-            font-size: 11px;
-            cursor: pointer;
-            outline: none;
-        }
 
-        .player-select option {
-            background: #1c1c1e;
-            color: #e0e0e0;
-        }
 
         .chart-area {
             display: flex;
@@ -177,9 +163,6 @@
     <div class="card">
         <div class="card-header">
             <span class="card-title">スキル別ダメージ</span>
-            <select id="playerSelect" class="player-select">
-                <option value="__all__">全員</option>
-            </select>
         </div>
         <div class="chart-area" id="chartArea">
             <div class="no-data">データがありません</div>
@@ -219,6 +202,9 @@
 
         // Known player names from skill data (correct names)
         let knownPlayerNames = {};    // { playerId -> playerName }
+
+        // Session baseline for reset detection
+        let currentBaselineId = 0;
 
         fetch('/skill_names_ja.json')
             .then(r => r.json())
@@ -337,22 +323,24 @@
             if (c) drawDonut(c, skills, total);
         }
 
+        // Send player list to WPF host via postMessage
         function updatePlayerSelect() {
-            const sel = document.getElementById('playerSelect');
-            const prev = sel.value;
-            sel.innerHTML = '<option value="__all__">全員</option>';
-            for (const pid of Object.keys(accumulatedSkillData)) {
-                const o = document.createElement('option');
-                o.value = pid; o.textContent = accumulatedSkillData[pid].playerName;
-                sel.appendChild(o);
-            }
-            sel.value = prev; if (!sel.value) sel.value = '__all__';
-            selectedPlayer = sel.value;
+            try {
+                if (window.chrome && window.chrome.webview) {
+                    const players = Object.keys(accumulatedSkillData).map(pid => ({
+                        id: pid,
+                        name: accumulatedSkillData[pid].playerName
+                    }));
+                    window.chrome.webview.postMessage({ type: 'playerList', players });
+                }
+            } catch (e) { }
         }
 
-        document.getElementById('playerSelect').addEventListener('change', e => {
-            selectedPlayer = e.target.value; renderSkillCard();
-        });
+        // Called from WPF when ComboBox selection changes
+        function setOverlayPlayer(value) {
+            selectedPlayer = value;
+            renderSkillCard();
+        }
 
         function mergeSkillData(data) {
             for (const p of data) {

@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -11,6 +14,7 @@ namespace OverlayApp
     public partial class MainWindow : Window
     {
         private bool _isClickThrough = false;
+        private bool _suppressComboBoxEvent = false;
 
         // Win32 constants
         private const int GWL_EXSTYLE = -20;
@@ -42,6 +46,10 @@ namespace OverlayApp
             InitializeComponent();
             Loaded += MainWindow_Loaded;
             Closed += MainWindow_Closed;
+
+            // Initialize ComboBox with default item
+            PlayerComboBox.Items.Add(CreateStyledItem("全員", "__all__"));
+            PlayerComboBox.SelectedIndex = 0;
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -62,13 +70,93 @@ namespace OverlayApp
                 await webView.EnsureCoreWebView2Async(env);
 
                 webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
-                webView.CoreWebView2.Navigate("http://localhost:5004/overlay.html");
+
+                // Listen for messages from JavaScript
+                webView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
+
+                webView.CoreWebView2.Navigate($"http://localhost:5004/overlay.html?v={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}");
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"WebView2の初期化に失敗しました。\n\n{ex.Message}\n\nWebView2 Runtimeがインストールされていることを確認してください。",
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Close();
+            }
+        }
+
+        private ComboBoxItem CreateStyledItem(string content, string tag)
+        {
+            var item = new ComboBoxItem
+            {
+                Content = content,
+                Tag = tag,
+                Foreground = new System.Windows.Media.SolidColorBrush(
+                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#e0e0e0")),
+                Background = System.Windows.Media.Brushes.Transparent,
+                Padding = new Thickness(6, 3, 6, 3),
+                FontSize = 10,
+            };
+            // Hover style
+            item.MouseEnter += (s, ev) => item.Background = new System.Windows.Media.SolidColorBrush(
+                (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#33ffffff"));
+            item.MouseLeave += (s, ev) => item.Background = System.Windows.Media.Brushes.Transparent;
+            return item;
+        }
+
+        private void CoreWebView2_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            try
+            {
+                var message = e.WebMessageAsJson;
+                using var doc = JsonDocument.Parse(message);
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("type", out var typeProp) && typeProp.GetString() == "playerList")
+                {
+                    var players = root.GetProperty("players");
+                    Dispatcher.Invoke(() =>
+                    {
+                        _suppressComboBoxEvent = true;
+                        var prevTag = (PlayerComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "__all__";
+
+                        PlayerComboBox.Items.Clear();
+                        PlayerComboBox.Items.Add(CreateStyledItem("全員", "__all__"));
+
+                        int selectIndex = 0;
+                        int idx = 1;
+                        foreach (var player in players.EnumerateArray())
+                        {
+                            var pid = player.GetProperty("id").GetString() ?? "";
+                            var name = player.GetProperty("name").GetString() ?? pid;
+                            PlayerComboBox.Items.Add(CreateStyledItem(name, pid));
+                            if (pid == prevTag) selectIndex = idx;
+                            idx++;
+                        }
+
+                        PlayerComboBox.SelectedIndex = selectIndex;
+                        _suppressComboBoxEvent = false;
+                    });
+                }
+            }
+            catch { }
+        }
+
+        private async void PlayerComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressComboBoxEvent) return;
+            if (PlayerComboBox.SelectedItem is ComboBoxItem item)
+            {
+                var value = item.Tag?.ToString() ?? "__all__";
+                try
+                {
+                    if (webView.CoreWebView2 != null)
+                    {
+                        var escaped = value.Replace("'", "\\'");
+                        await webView.CoreWebView2.ExecuteScriptAsync(
+                            $"if(typeof setOverlayPlayer==='function')setOverlayPlayer('{escaped}');");
+                    }
+                }
+                catch { }
             }
         }
 
