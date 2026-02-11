@@ -37,6 +37,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="publish\**" />
+    <Compile Remove="publish\**" />
+    <EmbeddedResource Remove="publish\**" />
+    <None Remove="publish\**" />
+    <Content Remove="publish_final\**" />
+    <Compile Remove="publish_final\**" />
+    <EmbeddedResource Remove="publish_final\**" />
+    <None Remove="publish_final\**" />
   </ItemGroup>
 
 </Project>
