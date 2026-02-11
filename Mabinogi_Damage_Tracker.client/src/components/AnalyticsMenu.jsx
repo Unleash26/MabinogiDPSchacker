@@ -25,6 +25,7 @@ function formatTimeStamp(ut) {
 
 function transformDataPieDamage(apiData, playerNames) {
     return apiData.map(item => ({
+        id: item.id,
         label: playerNames[item.id] || item.label,
         value: item.data.at(-1)
     }));
@@ -318,9 +319,9 @@ export default function AnalyticsMenu({ start_ut, end_ut }) {
                     }
                 </Grid>
                 { /* Skill Damage Pie Chart */}
-                <Grid size={{ xs: 12, sm: 12, lg: 8, xl: 4 }} >
+                <Grid size={{ xs: 12, sm: 12, lg: 12, xl: 8 }} >
                     <SkillDamagePieChart
-                        data={selectedSkillPlayer === "__all__" ? skillDamageData : (groupedSkillDamageData.find(p => p.playerId === selectedSkillPlayer)?.skills || [])}
+                        data={selectedSkillPlayer === "__all__" ? skillDamageData : (groupedSkillDamageData.find(p => p.playerId == selectedSkillPlayer)?.skills || [])}
                         selectedPlayer={selectedSkillPlayer}
                         onPlayerChange={setSelectedSkillPlayer}
                         players={damagePieChartData.map(d => ({ id: d.id, name: d.label }))}
