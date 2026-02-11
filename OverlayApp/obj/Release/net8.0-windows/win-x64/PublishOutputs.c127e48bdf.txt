@@ -1,5 +1,0 @@
-E:\Mabinogi-Damage-Tracker-1.0\OverlayApp\publish\OverlayApp.pdb
-E:\Mabinogi-Damage-Tracker-1.0\OverlayApp\publish\Microsoft.Web.WebView2.Core.xml
-E:\Mabinogi-Damage-Tracker-1.0\OverlayApp\publish\Microsoft.Web.WebView2.WinForms.xml
-E:\Mabinogi-Damage-Tracker-1.0\OverlayApp\publish\Microsoft.Web.WebView2.Wpf.xml
-E:\Mabinogi-Damage-Tracker-1.0\OverlayApp\publish\OverlayApp.exe

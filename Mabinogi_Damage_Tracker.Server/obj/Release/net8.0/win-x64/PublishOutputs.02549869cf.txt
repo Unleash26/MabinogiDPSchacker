@@ -1,7 +1,0 @@
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\dist\web.config
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\appsettings.Development.json
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\appsettings.json
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\dist\appsettings.Development.json
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\dist\appsettings.json
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\Mabinogi_Damage_Tracker.Server.pdb
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\Mabinogi_Damage_Tracker.Server.exe

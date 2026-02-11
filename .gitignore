@@ -1,0 +1,31 @@
+## --- Visual Studio & VS Code ---
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## --- C# Build Results (自動生成されるゴミ) ---
+[Bb]in/
+[Oo]bj/
+
+## --- Publish / Release (ビルド成果物) ---
+# ※exeをLFSで管理したい場合は、ここを調整する必要がありますが
+# 基本的にはビルドのたびに変わるフォルダは除外推奨です
+publish/
+
+## --- WebView2 Cache (さっきの大量ゴミファイル) ---
+*.WebView2/
+ebwebview/
+
+## --- OS Generated ---
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+## --- Large Files / Binary (必要に応じて) ---
+# LFSで管理しているファイルはここに書かないでください！
+# *.exe
+# *.dll
+# *.pdb

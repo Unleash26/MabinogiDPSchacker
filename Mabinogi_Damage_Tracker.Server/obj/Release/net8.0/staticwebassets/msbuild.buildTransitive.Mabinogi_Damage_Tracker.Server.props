@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\buildMultiTargeting\Mabinogi_Damage_Tracker.Server.props" />
-</Project>

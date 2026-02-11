@@ -1,9 +1,0 @@
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\PublishOutput_Hex\dist\web.config
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\PublishOutput_Hex\appsettings.Development.json
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\PublishOutput_Hex\appsettings.json
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\PublishOutput_Hex\dist\appsettings.Development.json
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\PublishOutput_Hex\dist\appsettings.json
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\PublishOutput_Hex\Mabinogi_Damage_Tracker.Server.pdb
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\PublishOutput_Hex\aspnetcorev2_inprocess.dll
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\PublishOutput_Hex\e_sqlite3.dll
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\bin\PublishOutput_Hex\Mabinogi_Damage_Tracker.Server.exe

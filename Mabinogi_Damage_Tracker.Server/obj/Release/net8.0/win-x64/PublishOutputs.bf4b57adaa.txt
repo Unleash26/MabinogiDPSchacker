@@ -1,6 +1,0 @@
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\dist\appsettings.Development.json
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\dist\appsettings.json
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\dist\Mabinogi_Damage_Tracker.Server.pdb
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\dist\aspnetcorev2_inprocess.dll
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\dist\e_sqlite3.dll
-E:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\dist\Mabinogi_Damage_Tracker.Server.exe
