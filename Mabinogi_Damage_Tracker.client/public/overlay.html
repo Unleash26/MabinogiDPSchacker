@@ -197,9 +197,6 @@
         let dpsLastFetchedId = 0;
         let dpsInitialized = false;
 
-        // Session baseline tracking (for reset detection)
-        let currentBaselineId = 0;
-
         // Known player names from skill data (correct names)
         let knownPlayerNames = {};    // { playerId -> playerName }
 
@@ -359,8 +356,10 @@
                 const res = await fetch(`${API_BASE}/GetDamageBySkillAfterId?lastFetchedId=${skillLastFetchedId}`);
                 const json = await res.json();
                 if (json && json.lastId) {
-                    if (!skillInitialized) { skillLastFetchedId = json.lastId; skillInitialized = true; return; }
-                    if (json.data) { mergeSkillData(json.data); skillLastFetchedId = json.lastId; updatePlayerSelect(); renderSkillCard(); }
+                    // Always process data, even on first load
+                    if (json.data) { mergeSkillData(json.data); updatePlayerSelect(); renderSkillCard(); }
+                    skillLastFetchedId = json.lastId;
+                    skillInitialized = true;
                 } else if (!skillInitialized) { skillInitialized = true; }
             } catch (e) { }
         }
@@ -488,7 +487,7 @@
                 const res = await fetch(`${API_BASE}/GetAllDamagesGroupedByPlayersAfterId?lastFetchedId=${dpsLastFetchedId}`);
                 const json = await res.json();
                 if (json && json.lastId) {
-                    if (!dpsInitialized) { dpsLastFetchedId = json.lastId; dpsInitialized = true; return; }
+                    // Always process data, even on first load
                     if (json.data) {
                         for (const p of json.data) {
                             // Resolve: use real player name instead of <SKILL>
@@ -507,9 +506,10 @@
                                 existing.push(runningTotal);
                             }
                         }
-                        dpsLastFetchedId = json.lastId;
                         drawDpsChart();
                     }
+                    dpsLastFetchedId = json.lastId;
+                    dpsInitialized = true;
                 } else if (!dpsInitialized) { dpsInitialized = true; }
             } catch (e) { }
         }
