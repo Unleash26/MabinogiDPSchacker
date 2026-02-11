@@ -124,10 +124,24 @@ namespace Mabinogi_Damage_tracker.Controllers
             return Json(db_helper.Get_ListOf_Distinct_Largest_Single_Damage_Instance(start_ut, end_ut, count));
         }
 
+        // Valid for the life of the server process. 
+        // If server restarts, this resets to 0, which is fine (overlay will sync to 0 or whatever max is).
+        private static long _sessionBaselineId = 0;
+
         public JsonResult GetLastDamageRowId()
         {
             Int64 row_id = db_helper.Get_Last_Damage_Row_Id();
-            return Json(new {data = row_id});
+            // Return both the max ID and the current session baseline
+            return Json(new { data = row_id, baseline = _sessionBaselineId });
+        }
+
+        [HttpGet]
+        public IActionResult StartNewSession()
+        {
+            // Set the baseline to the current max ID.
+            // effectively "hiding" previous data from the overlay's next fetch loop.
+            _sessionBaselineId = db_helper.Get_Last_Damage_Row_Id();
+            return Ok(_sessionBaselineId);
         }
 
         public JsonResult GetPlayersFromRecording(int start_ut, int end_ut)

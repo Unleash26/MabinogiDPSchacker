@@ -214,6 +214,9 @@
         let dpsLastFetchedId = 0;
         let dpsInitialized = false;
 
+        // Session baseline tracking (for reset detection)
+        let currentBaselineId = 0;
+
         // Known player names from skill data (correct names)
         let knownPlayerNames = {};    // { playerId -> playerName }
 
@@ -246,27 +249,32 @@
         }
 
         // Check if DB was cleared (measurement restarted)
+        // Check if Session Baseline changed (measurement restarted)
         async function checkForReset() {
-            // Only check after both are initialized and we have tracked data
-            if (!skillInitialized || !dpsInitialized) return false;
-            if (skillLastFetchedId === 0 && dpsLastFetchedId === 0) return false;
-
             try {
-                const res = await fetch(`${API_BASE}/GetLastDamageRowId`);
+                // Add timestamp to prevent caching
+                const res = await fetch(`${API_BASE}/GetLastDamageRowId?_=${Date.now()}`);
                 const json = await res.json();
-                const currentMaxId = json.data;
+                // Handle both PascalCase (C# default) and CamelCase
+                const remoteBaseline = json.baseline || json.Baseline || 0;
 
-                const ourMinId = Math.min(
-                    skillLastFetchedId > 0 ? skillLastFetchedId : Infinity,
-                    dpsLastFetchedId > 0 ? dpsLastFetchedId : Infinity
-                );
+                console.log(`[Overlay] CheckReset: current=${currentBaselineId}, remote=${remoteBaseline}`);
 
-                // DB was cleared: max ID dropped to 0 or below our tracked minimum
-                if (ourMinId !== Infinity && (currentMaxId === 0 || currentMaxId < ourMinId)) {
+                // If remote baseline is NEWER than our current baseline, it means a NEW session started.
+                // Note: This also handles the 0 -> N transition (Start Recording)
+                if (remoteBaseline > currentBaselineId) {
+                    console.log(`[Overlay] RESET TRIGGERED! (Baseline: ${currentBaselineId} -> ${remoteBaseline})`);
                     resetAll();
+                    currentBaselineId = remoteBaseline;
+                    // Start fetching from the new baseline
+                    skillLastFetchedId = remoteBaseline;
+                    dpsLastFetchedId = remoteBaseline;
+                    skillInitialized = true;
+                    dpsInitialized = true;
                     return true;
                 }
-            } catch (e) { }
+            } catch (e) { console.error(e); }
+
             return false;
         }
 

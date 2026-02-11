@@ -235,6 +235,11 @@ export default function LiveMenu() {
             }).catch(error => console.error('Error:', error));
 
         } else {
+            // Start Recording: Set new baseline for overlay
+            // ADDED TIMESTAMP TO PREVENT CACHING. This is critical for GET requests that change state.
+            fetch(`http://${window.location.hostname}:5004/Home/StartNewSession?_=${Date.now()}`)
+                .then(r => console.log('[LiveMenu] StartNewSession:', r.status))
+                .catch(e => console.error('[LiveMenu] StartNewSession Error:', e));
             const startTime = Math.floor(Date.now() / 1000);
             setStartUT(startTime)
         }
