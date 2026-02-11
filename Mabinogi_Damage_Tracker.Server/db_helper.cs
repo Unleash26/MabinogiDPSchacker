@@ -99,6 +99,29 @@ namespace Mabinogi_Damage_tracker
             }
         }
 
+        public static bool Update_Player_Name(long playerid, string newName)
+        {
+            try
+            {
+                using (SqliteConnection connection = new SqliteConnection(db_connection))
+                {
+                    connection.Open();
+                    SqliteCommand command = new SqliteCommand(@"
+                        UPDATE players SET playername = @newName WHERE playerid = @playerid
+                    ", connection);
+                    command.Parameters.AddWithValue("@playerid", playerid);
+                    command.Parameters.AddWithValue("@newName", newName);
+                    int rows = command.ExecuteNonQuery();
+                    return rows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Update_Player_Name error: " + ex.Message);
+                return false;
+            }
+        }
+
         public static List<object> Get_All_Players()
         {
             try

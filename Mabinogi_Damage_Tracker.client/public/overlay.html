@@ -188,7 +188,7 @@
 
     <div class="card">
         <div class="card-header">
-            <span class="card-title">DPS推移</span>
+            <span class="card-title">ダメージ推移</span>
         </div>
         <div class="dps-canvas-container">
             <canvas id="dpsCanvas"></canvas>
@@ -370,16 +370,51 @@
         }
 
         // ========== DPS CHART ==========
-        function getFirstKnownPlayerName() {
-            const names = Object.values(knownPlayerNames);
-            return names.length > 0 ? names[0] : null;
+        // Player name map: { playerId -> displayName }
+        // Merges DB names with localStorage custom_names (same logic as AppContext)
+        let playerNameMap = {};  // { "12345": "あやねまる", ... }
+
+        async function fetchPlayerNameMap() {
+            try {
+                const res = await fetch(`${API_BASE}/GetAllPlayers`);
+                const json = await res.json();
+                // Read custom names from localStorage (same key as React AppContext)
+                let customNames = {};
+                try { customNames = JSON.parse(localStorage.getItem('custom_names') || '{}'); } catch (e) { }
+
+                // Parse response: Ok(Json(list)) -> { value: [...] }
+                let players = null;
+                if (Array.isArray(json)) {
+                    players = json;
+                } else if (json && json.value) {
+                    if (Array.isArray(json.value)) {
+                        players = json.value;
+                    } else if (json.value && json.value.value && Array.isArray(json.value.value)) {
+                        players = json.value.value;
+                    }
+                }
+                if (players) {
+                    const map = {};
+                    players.forEach(p => {
+                        // Priority: custom name > DB name
+                        map[String(p.playerId)] = customNames[p.playerId] || customNames[String(p.playerId)] || p.playerName;
+                    });
+                    playerNameMap = map;
+                }
+            } catch (e) { }
         }
 
-        function resolvePlayerName(label) {
-            // If label looks like a placeholder (<SKILL>, <xxx>), use the known player name
+        function resolvePlayerName(label, playerId) {
+            // First try: look up by playerId in the name map
+            if (playerId && playerNameMap[String(playerId)]) {
+                const mapped = playerNameMap[String(playerId)];
+                // Only use if it's not a placeholder
+                if (!mapped.startsWith('<') || !mapped.endsWith('>')) return mapped;
+            }
+            // Second try: if label is a placeholder, use first non-placeholder name from the map
             if (label && label.startsWith('<') && label.endsWith('>')) {
-                const knownName = getFirstKnownPlayerName();
-                if (knownName) return knownName;
+                const realNames = Object.values(playerNameMap).filter(n => !n.startsWith('<') || !n.endsWith('>'));
+                if (realNames.length > 0) return realNames[0];
             }
             return label;
         }
@@ -455,13 +490,13 @@
                     if (!dpsInitialized) { dpsLastFetchedId = json.lastId; dpsInitialized = true; return; }
                     if (json.data) {
                         for (const p of json.data) {
-                            const displayName = resolvePlayerName(p.label);
+                            // Resolve: use real player name instead of <SKILL>
+                            const displayName = resolvePlayerName(p.label, p.id);
 
+                            // Merge all entries (including <SKILL> and real name) into one
                             if (!dpsPlayers[displayName]) {
                                 dpsPlayers[displayName] = { name: displayName, cumulativeData: [] };
                             }
-                            // Update name in case knownPlayerNames was populated later
-                            dpsPlayers[displayName].name = resolvePlayerName(displayName);
 
                             const existing = dpsPlayers[displayName].cumulativeData;
                             const lastCum = existing.length > 0 ? existing[existing.length - 1] : 0;
@@ -481,7 +516,9 @@
         // ========== MAIN LOOP ==========
         async function tick() {
             const wasReset = await checkForReset();
-            if (wasReset) return; // Skip this tick, start fresh next tick
+            if (wasReset) return;
+            // Fetch player name map every tick (localStorage custom_names + DB)
+            await fetchPlayerNameMap();
             await Promise.all([fetchSkillData(), fetchDpsData()]);
         }
 

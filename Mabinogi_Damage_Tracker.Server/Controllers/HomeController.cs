@@ -72,6 +72,15 @@ namespace Mabinogi_Damage_tracker.Controllers
             return Ok(Json(players));
         }
 
+        [HttpPost]
+        public IActionResult UpdatePlayerName(long playerId, string newName)
+        {
+            if (string.IsNullOrWhiteSpace(newName)) { return BadRequest("Name cannot be empty"); }
+            bool success = db_helper.Update_Player_Name(playerId, newName);
+            if (!success) { return NotFound(); }
+            return Ok(new { success = true });
+        }
+
         public JsonResult GetDamagesBetweenUt(int start_ut, int end_ut)
         {
             List<Damage_Simple> damages = db_helper.Get_Damages_Between_Ut(start_ut, end_ut);

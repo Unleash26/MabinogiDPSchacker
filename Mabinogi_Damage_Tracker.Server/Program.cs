@@ -19,14 +19,7 @@ builder.Services.AddCors(options => {
 
 var app = builder.Build();
 
-// ★★★★★ ここから追加（盗聴用コード） ★★★★★
-app.Use(async (context, next) =>
-{
-    // 画面からの注文（リクエスト）を全て黒い画面に表示する
-    Console.WriteLine($"[REQUEST] {context.Request.Method} {context.Request.Path}");
-    await next();
-});
-// ★★★★★ ここまで ★★★★★
+
 
 // --- 1. 時限判定 ---
 var expireDate = new DateTime(2027, 2, 14, 0, 0, 0);

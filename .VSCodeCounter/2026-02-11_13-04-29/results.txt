@@ -1,0 +1,174 @@
+Date : 2026-02-11 13:04:29
+Directory : e:\Mabinogi-Damage-Tracker-1.0
+Total : 113 files,  38594 codes, 265 comments, 1114 blanks, all 39973 lines
+
+Languages
++----------------+------------+------------+------------+------------+------------+
+| language       | files      | code       | comment    | blank      | total      |
++----------------+------------+------------+------------+------------+------------+
+| JSON           |         17 |     19,342 |          0 |          9 |     19,351 |
+| Log            |          4 |     10,829 |          0 |         98 |     10,927 |
+| JavaScript JSX |         31 |      3,369 |        149 |        368 |      3,886 |
+| C#             |         14 |      3,022 |        100 |        334 |      3,456 |
+| HTML           |          5 |      1,033 |          0 |        147 |      1,180 |
+| JavaScript     |         16 |        532 |          9 |         34 |        575 |
+| Markdown       |         13 |        231 |          0 |         89 |        320 |
+| XML            |          9 |        154 |          0 |         17 |        171 |
+| CSS            |          3 |         55 |          0 |          9 |         64 |
+| Docker         |          1 |         27 |          7 |          9 |         43 |
++----------------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                              | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                 |        113 |     38,594 |        265 |      1,114 |     39,973 |
+| . (Files)                                                                                                         |          3 |        154 |          0 |         12 |        166 |
+| Mabinogi_Damage_Tracker.Server                                                                                    |         42 |     14,483 |        106 |        525 |     15,114 |
+| Mabinogi_Damage_Tracker.Server (Files)                                                                            |         12 |     13,184 |         78 |        347 |     13,609 |
+| Mabinogi_Damage_Tracker.Server\Controllers                                                                        |          3 |        301 |         22 |         55 |        378 |
+| Mabinogi_Damage_Tracker.Server\Models                                                                             |          4 |        103 |          3 |         14 |        120 |
+| Mabinogi_Damage_Tracker.Server\Properties                                                                         |          2 |         63 |          0 |          0 |         63 |
+| Mabinogi_Damage_Tracker.Server\Properties (Files)                                                                 |          1 |         39 |          0 |          0 |         39 |
+| Mabinogi_Damage_Tracker.Server\Properties\PublishProfiles                                                         |          1 |         24 |          0 |          0 |         24 |
+| Mabinogi_Damage_Tracker.Server\dist                                                                               |          2 |         24 |          0 |          1 |         25 |
+| Mabinogi_Damage_Tracker.Server\publish_v2                                                                         |         19 |        808 |          3 |        108 |        919 |
+| Mabinogi_Damage_Tracker.Server\publish_v2 (Files)                                                                 |          2 |         24 |          0 |          1 |         25 |
+| Mabinogi_Damage_Tracker.Server\publish_v2\client                                                                  |         15 |        760 |          3 |        106 |        869 |
+| Mabinogi_Damage_Tracker.Server\publish_v2\client (Files)                                                          |         11 |        751 |          0 |        106 |        857 |
+| Mabinogi_Damage_Tracker.Server\publish_v2\client\static                                                           |          4 |          9 |          3 |          0 |         12 |
+| Mabinogi_Damage_Tracker.Server\publish_v2\client\static\css                                                       |          1 |          4 |          0 |          0 |          4 |
+| Mabinogi_Damage_Tracker.Server\publish_v2\client\static\js                                                        |          3 |          5 |          3 |          0 |          8 |
+| Mabinogi_Damage_Tracker.Server\publish_v2\dist                                                                    |          2 |         24 |          0 |          1 |         25 |
+| Mabinogi_Damage_Tracker.client                                                                                    |         63 |     23,744 |        155 |        541 |     24,440 |
+| Mabinogi_Damage_Tracker.client (Files)                                                                            |          8 |     19,017 |          0 |          9 |     19,026 |
+| Mabinogi_Damage_Tracker.client\public                                                                             |         10 |        827 |          0 |        124 |        951 |
+| Mabinogi_Damage_Tracker.client\src                                                                                |         45 |      3,900 |        155 |        408 |      4,463 |
+| Mabinogi_Damage_Tracker.client\src (Files)                                                                        |         10 |        167 |         23 |         31 |        221 |
+| Mabinogi_Damage_Tracker.client\src\assets                                                                         |          1 |          1 |          0 |          0 |          1 |
+| Mabinogi_Damage_Tracker.client\src\components                                                                     |         28 |      3,280 |        131 |        352 |      3,763 |
+| Mabinogi_Damage_Tracker.client\src\theme                                                                          |          6 |        452 |          1 |         25 |        478 |
+| Mabinogi_Damage_Tracker.client\src\theme (Files)                                                                  |          2 |        452 |          1 |         21 |        474 |
+| Mabinogi_Damage_Tracker.client\src\theme\customizations                                                           |          4 |          0 |          0 |          4 |          4 |
+| OverlayApp                                                                                                        |          5 |        213 |          4 |         36 |        253 |
++-------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+
+| filename                                                                                                          | language       | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\CHANGELOG.md                                        | Markdown       |          8 |          0 |          2 |         10 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\Controllers\DataStreamController.cs                 | C#             |         77 |          8 |         11 |         96 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\Controllers\HomeController.cs                       | C#             |        193 |         14 |         36 |        243 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\Controllers\LogsController.cs                       | C#             |         31 |          0 |          8 |         39 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\Dockerfile                                          | Docker         |         27 |          7 |          9 |         43 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\Mabinogi_Damage_Tracker.Server.csproj               | XML            |         35 |          0 |          8 |         43 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\Models\DamageDetails.cs                             | C#             |         58 |          0 |          6 |         64 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\Models\ErrorViewModel.cs                            | C#             |          8 |          0 |          2 |         10 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\Models\RecordingDetails.cs                          | C#             |         18 |          0 |          4 |         22 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\Models\SkillDamage_Simple.cs                        | C#             |         19 |          3 |          2 |         24 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\Parser.cs                                           | C#             |        408 |         11 |         81 |        500 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\Program.cs                                          | C#             |         66 |         14 |         14 |         94 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\Properties\PublishProfiles\FolderProfile.pubxml     | XML            |         24 |          0 |          0 |         24 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\Properties\launchSettings.json                      | JSON           |         39 |          0 |          0 |         39 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\appsettings.Development.json                        | JSON           |          8 |          0 |          1 |          9 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\appsettings.json                                    | JSON           |         16 |          0 |          0 |         16 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\build.log                                           | Log            |         31 |          0 |          0 |         31 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\classes.cs                                          | C#             |         72 |          0 |          7 |         79 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\db_helper.cs                                        | C#             |      1,015 |         44 |        133 |      1,192 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\dist\appsettings.Development.json                   | JSON           |          8 |          0 |          1 |          9 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\dist\appsettings.json                               | JSON           |         16 |          0 |          0 |         16 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\msbuild.log                                         | Log            |     10,563 |          0 |         89 |     10,652 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\appsettings.Development.json             | JSON           |          8 |          0 |          1 |          9 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\appsettings.json                         | JSON           |         16 |          0 |          0 |         16 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\ABOUTPAGE.md                      | Markdown       |         10 |          0 |          3 |         13 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\README.md                         | Markdown       |         72 |          0 |         32 |        104 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\RECOGNITIONS.md                   | Markdown       |         13 |          0 |          3 |         16 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\TONEXONEN.md                      | Markdown       |          4 |          0 |          2 |          6 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\TONEXONKR.md                      | Markdown       |          7 |          0 |          1 |          8 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\asset-manifest.json               | JSON           |         15 |          0 |          0 |         15 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\index.html                        | HTML           |          1 |          0 |          0 |          1 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\manifest.json                     | JSON           |         25 |          0 |          1 |         26 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\overlay.html                      | HTML           |        453 |          0 |         64 |        517 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\skill_names_ja.json               | JSON           |        150 |          0 |          0 |        150 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\static\css\main.d9494484.css      | CSS            |          4 |          0 |          0 |          4 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\static\js\453.356b2c22.chunk.js   | JavaScript     |          1 |          1 |          0 |          2 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\static\js\main.023583b1.js        | JavaScript     |          2 |          1 |          0 |          3 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\static\js\main.387d60cb.js        | JavaScript     |          2 |          1 |          0 |          3 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\client\vite.svg                          | XML            |          1 |          0 |          0 |          1 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\dist\appsettings.Development.json        | JSON           |          8 |          0 |          1 |          9 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\publish_v2\dist\appsettings.json                    | JSON           |         16 |          0 |          0 |         16 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.Server\skill_ids.cs                                        | C#             |        935 |          2 |          3 |        940 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\CHANGELOG.md                                        | Markdown       |         11 |          0 |          3 |         14 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\build_error.log                                     | Log            |         87 |          0 |          0 |         87 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\eslint.config.js                                    | JavaScript     |         28 |          0 |          2 |         30 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\index.html                                          | HTML           |         34 |          0 |          1 |         35 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\package-lock.json                                   | JSON           |     18,787 |          0 |          1 |     18,788 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\package.json                                        | JSON           |         49 |          0 |          1 |         50 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\public\ABOUTPAGE.md                                 | Markdown       |         10 |          0 |          3 |         13 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\public\README.md                                    | Markdown       |         72 |          0 |         32 |        104 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\public\RECOGNITIONS.md                              | Markdown       |         13 |          0 |          3 |         16 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\public\TONEXONEN.md                                 | Markdown       |          4 |          0 |          2 |          6 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\public\TONEXONKR.md                                 | Markdown       |          7 |          0 |          1 |          8 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\public\index.html                                   | HTML           |         92 |          0 |         18 |        110 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\public\manifest.json                                | JSON           |         25 |          0 |          1 |         26 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\public\overlay.html                                 | HTML           |        453 |          0 |         64 |        517 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\public\skill_names_ja.json                          | JSON           |        150 |          0 |          0 |        150 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\public\vite.svg                                     | XML            |          1 |          0 |          0 |          1 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\App.css                                         | CSS            |         33 |          0 |          6 |         39 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\AppContext.jsx                                  | JavaScript JSX |         56 |         11 |         11 |         78 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\Dashboard.jsx                                   | JavaScript JSX |         21 |          2 |          3 |         26 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\Report.js                                       | JavaScript     |          0 |          0 |          1 |          1 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\assets\react.svg                                | XML            |          1 |          0 |          0 |          1 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\AboutMenu.jsx                        | JavaScript JSX |         17 |          0 |          5 |         22 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\AnalyticsMenu.jsx                    | JavaScript JSX |        302 |          6 |         35 |        343 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\BurstCard.jsx                        | JavaScript JSX |         55 |          5 |          8 |         68 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\DamageCard.jsx                       | JavaScript JSX |         60 |          3 |          4 |         67 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\DamageOverTimeLineGraph.jsx          | JavaScript JSX |         94 |          5 |          9 |        108 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\DamageScatterPlot.jsx                | JavaScript JSX |        115 |          0 |         12 |        127 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\DecoratedDamageOverTimeLineGraph.jsx | JavaScript JSX |        348 |          1 |         36 |        385 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\DotsMobileStepper.jsx                | JavaScript JSX |         40 |          0 |          4 |         44 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\HealingCard.jsx                      | JavaScript JSX |         45 |          0 |          3 |         48 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\HomeMenu.jsx                         | JavaScript JSX |         44 |          0 |          8 |         52 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\LargestHitCard.jsx                   | JavaScript JSX |         56 |          8 |          9 |         73 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\LiveMenu.jsx                         | JavaScript JSX |        303 |         14 |         41 |        358 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\LogStream.jsx                        | JavaScript JSX |         67 |         10 |         11 |         88 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\MainContent.jsx                      | JavaScript JSX |         39 |          0 |          5 |         44 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\MenuContent.jsx                      | JavaScript JSX |         55 |         10 |          5 |         70 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\NumberField.jsx                      | JavaScript JSX |        113 |          0 |          6 |        119 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\PlayerCountCard.jsx                  | JavaScript JSX |         39 |          0 |          2 |         41 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\PlayerDamageGauge.jsx                | JavaScript JSX |         98 |         10 |         11 |        119 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\PlayerDamagePieChart.jsx             | JavaScript JSX |        136 |          7 |         13 |        156 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\PlayerTotalDamageBarChart.jsx        | JavaScript JSX |          1 |          0 |          0 |          1 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\PlayersMenu.jsx                      | JavaScript JSX |        132 |          8 |         12 |        152 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\RecordingsMenu.jsx                   | JavaScript JSX |        190 |          4 |         19 |        213 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\SettingsMenu.jsx                     | JavaScript JSX |        203 |          7 |         19 |        229 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\SideMenu.jsx                         | JavaScript JSX |         43 |          5 |          4 |         52 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\SkillDamageBarChart.jsx              | JavaScript JSX |        163 |          9 |         13 |        185 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\SkillDamagePieChart.jsx              | JavaScript JSX |        197 |          4 |         17 |        218 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\TimeCard.jsx                         | JavaScript JSX |         44 |          1 |          4 |         49 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\components\TrimLineGraph.jsx                    | JavaScript JSX |        281 |         14 |         37 |        332 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\index.css                                       | CSS            |         18 |          0 |          3 |         21 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\index.js                                        | JavaScript     |         13 |          2 |          2 |         17 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\logo.svg                                        | XML            |          1 |          0 |          0 |          1 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\main.jsx                                        | JavaScript JSX |         12 |          5 |          2 |         19 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\reportWebVitals.js                              | JavaScript     |         12 |          0 |          2 |         14 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\setupTests.js                                   | JavaScript     |          1 |          3 |          1 |          5 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\theme\AppTheme.js                               | JavaScript     |         66 |          0 |          6 |         72 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\theme\customizations\charts.js                  | JavaScript     |          0 |          0 |          1 |          1 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\theme\customizations\dataDisplay.js             | JavaScript     |          0 |          0 |          1 |          1 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\theme\customizations\index.js                   | JavaScript     |          0 |          0 |          1 |          1 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\theme\customizations\surfaces.js                | JavaScript     |          0 |          0 |          1 |          1 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\src\theme\themePrimitives.js                        | JavaScript     |        386 |          1 |         15 |        402 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\tailwind.config.js                                  | JavaScript     |         12 |          0 |          0 |         12 |
+| e:\Mabinogi-Damage-Tracker-1.0\Mabinogi_Damage_Tracker.client\vite.config.js                                      | JavaScript     |          9 |          0 |          1 |         10 |
+| e:\Mabinogi-Damage-Tracker-1.0\OverlayApp\App.xaml                                                                | XML            |          5 |          0 |          1 |          6 |
+| e:\Mabinogi-Damage-Tracker-1.0\OverlayApp\App.xaml.cs                                                             | C#             |          7 |          0 |          2 |          9 |
+| e:\Mabinogi-Damage-Tracker-1.0\OverlayApp\MainWindow.xaml                                                         | XML            |         73 |          0 |          4 |         77 |
+| e:\Mabinogi-Damage-Tracker-1.0\OverlayApp\MainWindow.xaml.cs                                                      | C#             |        115 |          4 |         25 |        144 |
+| e:\Mabinogi-Damage-Tracker-1.0\OverlayApp\OverlayApp.csproj                                                       | XML            |         13 |          0 |          4 |         17 |
+| e:\Mabinogi-Damage-Tracker-1.0\README.md                                                                          | Markdown       |          0 |          0 |          2 |          2 |
+| e:\Mabinogi-Damage-Tracker-1.0\msbuild.log                                                                        | Log            |        148 |          0 |          9 |        157 |
+| e:\Mabinogi-Damage-Tracker-1.0\package-lock.json                                                                  | JSON           |          6 |          0 |          1 |          7 |
+| Total                                                                                                             |                |     38,594 |        265 |      1,114 |     39,973 |
++-------------------------------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+

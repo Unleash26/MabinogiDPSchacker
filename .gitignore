@@ -26,6 +26,11 @@ Desktop.ini
 
 ## --- Large Files / Binary (必要に応じて) ---
 # LFSで管理しているファイルはここに書かないでください！
-# *.exe
+.exe
 # *.dll
 # *.pdb
+
+
+# ビルド成果物のフォルダを丸ごと無視
+publish_final/
+publish/

@@ -2,8 +2,8 @@ import { LineChart } from '@mui/x-charts/LineChart';
 import { Paper, Typography, Box } from '@mui/material';
 
 // デザイン共通設定
-const fontStyle = { 
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif' 
+const fontStyle = {
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif'
 };
 
 function formatLargeNumber(num) {
@@ -40,14 +40,14 @@ export default function DamageOverTimeLineGraph({ chartData, start_ut }) {
     }));
 
     return (
-        <Paper 
+        <Paper
             elevation={0}
-            sx={{ 
-                padding: "24px", 
-                height: "100%", 
+            sx={{
+                padding: "24px",
+                height: "100%",
                 borderRadius: '24px',
                 // ★ダークモード背景
-                backgroundColor: '#1C1C1E', 
+                backgroundColor: '#1C1C1E',
                 boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.5)',
                 border: '1px solid rgba(255,255,255,0.1)',
                 display: 'flex',
@@ -56,9 +56,9 @@ export default function DamageOverTimeLineGraph({ chartData, start_ut }) {
         >
             {/* タイトル：白 */}
             <Typography variant="h6" sx={{ ...fontStyle, fontWeight: '700', color: '#FFFFFF', mb: 2 }}>
-                DPS推移
+                ダメージ推移
             </Typography>
-            
+
             <Box sx={{ flexGrow: 1, width: '100%' }}>
                 <LineChart
                     height={300}
@@ -77,8 +77,8 @@ export default function DamageOverTimeLineGraph({ chartData, start_ut }) {
                             }
                         },
                     ]}
-                    yAxis={[{ 
-                        width: 40, 
+                    yAxis={[{
+                        width: 40,
                         valueFormatter: formatLargeNumber,
                         tickLabelStyle: {
                             ...fontStyle,
@@ -91,7 +91,7 @@ export default function DamageOverTimeLineGraph({ chartData, start_ut }) {
                     margin={{ right: 20, left: 50, bottom: 30, top: 10 }}
                     slotProps={{
                         legend: {
-                            hidden: true, 
+                            hidden: true,
                         }
                     }}
                     sx={{

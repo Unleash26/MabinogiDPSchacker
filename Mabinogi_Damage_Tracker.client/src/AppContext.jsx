@@ -9,7 +9,7 @@ export const AppProvider = ({ children }) => {
     // 1. Dashboardから引っ越してきた機能 (テーマ・モード)
     // ==========================================
     const [mode, setMode] = useState(() => localStorage.getItem('mode') || 'light');
-    
+
     useEffect(() => {
         document.documentElement.setAttribute('data-mui-color-scheme', mode);
         localStorage.setItem('mode', mode);
@@ -21,7 +21,7 @@ export const AppProvider = ({ children }) => {
     const [menu, setMenu] = useState({ name: 'Live' });
     const [burstCount, setBurstCount] = useState(() => localStorage.getItem('burstCount') || 3);
     const [largestDamageInstanceCount, setLargestDamageInstanceCount] = useState(() => localStorage.getItem('largestDamageInstanceCount') || 3);
-    const [pollingRate, setPollingRate] = useState(() => localStorage.getItem('pollingRate') || 1000); 
+    const [pollingRate, setPollingRate] = useState(() => localStorage.getItem('pollingRate') || 1000);
 
     useEffect(() => { localStorage.setItem('pollingRate', pollingRate); }, [pollingRate]);
     useEffect(() => { localStorage.setItem('burstCount', burstCount); }, [burstCount]);
@@ -39,6 +39,11 @@ export const AppProvider = ({ children }) => {
             localStorage.setItem('custom_names', JSON.stringify(savedNames));
         } catch (e) { console.error(e); }
 
+        // Also persist to DB so overlay (WebView2) can read it
+        fetch(`http://${window.location.hostname}:5004/Home/UpdatePlayerName?playerId=${id}&newName=${encodeURIComponent(newName)}`, {
+            method: 'POST'
+        }).catch(e => console.error('DB name update failed:', e));
+
         setPlayerNames(prev => ({ ...prev, [id]: newName }));
         console.log(`名前変更成功: ${newName}`);
     };
@@ -53,7 +58,15 @@ export const AppProvider = ({ children }) => {
                 if (data.value && Array.isArray(data.value)) {
                     const map = {};
                     data.value.forEach(p => {
-                        map[p.playerId] = savedNames[p.playerId] || p.playerName;
+                        const localName = savedNames[p.playerId];
+                        // Sync: If we have a local name but DB has something else, push local name to DB
+                        if (localName && localName !== p.playerName) {
+                            fetch(`http://${window.location.hostname}:5004/Home/UpdatePlayerName?playerId=${p.playerId}&newName=${encodeURIComponent(localName)}`, {
+                                method: 'POST'
+                            }).catch(e => console.error('Auto-sync name failed:', e));
+                        }
+
+                        map[p.playerId] = localName || p.playerName;
                     });
                     setPlayerNames(map);
                 }
@@ -64,10 +77,10 @@ export const AppProvider = ({ children }) => {
 
     // 全部まとめて配信！
     return (
-        <AppContext.Provider value={{ 
-            menu, setMenu, 
-            mode, setMode, 
-            playerNames, renamePlayer, 
+        <AppContext.Provider value={{
+            menu, setMenu,
+            mode, setMode,
+            playerNames, renamePlayer,
             burstCount, setBurstCount,
             largestDamageInstanceCount, setLargestDamageInstanceCount,
             pollingRate, setPollingRate
