@@ -83,6 +83,7 @@ function PieCenterLabel({ children }) {
 
 export default function SkillDamagePieChart({ data, selectedPlayer, onPlayerChange, players }) {
     const [translations, setTranslations] = React.useState({});
+    const [displayCount, setDisplayCount] = React.useState(20); // 表示数の状態管理
 
     // 翻訳ファイルを読み込み
     React.useEffect(() => {
@@ -102,7 +103,10 @@ export default function SkillDamagePieChart({ data, selectedPlayer, onPlayerChan
 
     const totalDamage = data ? data.reduce((prev, curr) => prev + curr.damage, 0) : 0;
 
-    const chartData = (data || []).map((item, index) => ({
+    const sortedData = (data || []).sort((a, b) => b.damage - a.damage);
+    const visibleData = displayCount === 'All' ? sortedData : sortedData.slice(0, displayCount);
+
+    const chartData = visibleData.map((item, index) => ({
         id: index,
         label: translateSkillName(item.skillName),
         value: item.damage,
@@ -114,7 +118,9 @@ export default function SkillDamagePieChart({ data, selectedPlayer, onPlayerChan
             elevation={0}
             sx={{
                 padding: "24px",
-                height: "100%",
+                padding: "24px",
+                // height: "100%", // 固定高さを削除して可変にする
+                minHeight: "300px", // 最小高さは確保
                 borderRadius: '24px',
                 backgroundColor: '#1C1C1E',
                 boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.5)',
@@ -169,6 +175,42 @@ export default function SkillDamagePieChart({ data, selectedPlayer, onPlayerChan
                         </Select>
                     </FormControl>
                 )}
+
+                {/* 表示数切り替えセレクター */}
+                <FormControl size="small" sx={{ ml: 1 }}>
+                    <Select
+                        value={displayCount}
+                        onChange={(e) => setDisplayCount(e.target.value)}
+                        sx={{
+                            ...fontStyle,
+                            color: '#FFFFFF',
+                            backgroundColor: '#2C2C2E',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            height: '32px',
+                            '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.15)' },
+                            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#5D95FC' },
+                            '.MuiSvgIcon-root': { color: '#A1A1A6' },
+                        }}
+                        MenuProps={{
+                            PaperProps: {
+                                sx: {
+                                    backgroundColor: '#2C2C2E',
+                                    borderRadius: '12px',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    mt: 0.5,
+                                },
+                            },
+                        }}
+                    >
+                        <MenuItem value={10} sx={{ ...fontStyle, color: '#FFFFFF', fontSize: '12px', '&:hover': { backgroundColor: 'rgba(255,255,255,0.08)' } }}>Top 10</MenuItem>
+                        <MenuItem value={20} sx={{ ...fontStyle, color: '#FFFFFF', fontSize: '12px', '&:hover': { backgroundColor: 'rgba(255,255,255,0.08)' } }}>Top 20</MenuItem>
+                        <MenuItem value={40} sx={{ ...fontStyle, color: '#FFFFFF', fontSize: '12px', '&:hover': { backgroundColor: 'rgba(255,255,255,0.08)' } }}>Top 40</MenuItem>
+                        <MenuItem value="All" sx={{ ...fontStyle, color: '#FFFFFF', fontSize: '12px', '&:hover': { backgroundColor: 'rgba(255,255,255,0.08)' } }}>All</MenuItem>
+                    </Select>
+                </FormControl>
             </Box>
 
             {(!data || data.length === 0) ? (
@@ -178,9 +220,9 @@ export default function SkillDamagePieChart({ data, selectedPlayer, onPlayerChan
                     </Typography>
                 </Box>
             ) : (
-                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                    {/* Chart Area - Left */}
-                    <Box sx={{ width: 210, height: 210, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center' }}>
+                    {/* Chart Area - Left (Sticky to stay visible when list is long) */}
+                    <Box sx={{ width: 210, height: 210, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: 'sticky', top: 0 }}>
                         <PieChart
                             series={[
                                 {
@@ -204,8 +246,8 @@ export default function SkillDamagePieChart({ data, selectedPlayer, onPlayerChan
                         </PieChart>
                     </Box>
 
-                    {/* Custom Legend - Right (Takes remaining space) */}
-                    <Box sx={{ ml: 4, overflowY: "auto", flexGrow: 1, maxHeight: 210, pr: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    {/* Custom Legend - Right (Expandable) */}
+                    <Box sx={{ ml: 4, flexGrow: 1, pr: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
                         {chartData.map((item) => (
                             <LegendItem key={item.id} item={item} totalValue={totalDamage} />
                         ))}
