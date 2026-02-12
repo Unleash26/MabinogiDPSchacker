@@ -335,7 +335,7 @@ export default function DecoratedDamageOverTimeLineGraph({ chartData, bands, lar
     return (
         <Paper square={false} sx={{ padding: "16px", height: "100%" }}>
             <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <Typography variant="h4" sx={{ marginBottom: "20px" }}>Damage Over Time</Typography>
+                <Typography variant="h4" sx={{ marginBottom: "20px" }}>ダメージ推移</Typography>
                 <GraphSettings
                     labelsVisible={labelsVisible}
                     setLabelsVisible={setLabelsVisible}

@@ -40,20 +40,17 @@ function formatLargeNumber(num) {
 }
 
 // 凡例（Legend）の修正
-function CustomLegend() {
-    const series = useSeries();
-    // ★ここで AppContext を使うのは少し難しいので、データ自体を変換済みにする戦略をとります
-    if (!series.pie || !series.pie.seriesOrder || series.pie.seriesOrder.length === 0) {
+// 凡例（Legend）を外部コンポーネントとして分離
+function ExternalLegend({ data, colors }) {
+    if (!data || data.length === 0) {
         return null;
     }
-    const firstSeriesId = series.pie.seriesOrder[0];
-    const firstSeriesData = series.pie.series[firstSeriesId].data;
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, marginLeft: "12px", maxHeight: '200px', overflowY: 'auto', pr: 1 }}>
-            {firstSeriesData.map((item) => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, marginLeft: "12px", maxHeight: 'none', overflowY: 'visible', pr: 1, minWidth: '140px' }}>
+            {data.map((item, index) => (
                 <Box
-                    key={item.id} // labelは被る可能性があるのでid推奨
+                    key={item.id}
                     sx={{
                         display: 'flex',
                         flexDirection: 'row',
@@ -63,9 +60,8 @@ function CustomLegend() {
                     }}
                 >
                     <Box sx={{ display: 'flex', alignItems: 'center', marginRight: 2 }}>
-                        <CircleIcon sx={{ color: item.color ?? 'gray', fontSize: 10, marginRight: '8px' }} />
-                        {/* ここには変換済みの label が表示されます */}
-                        <Typography variant="body2" sx={{ ...fontStyle, fontWeight: 600, fontSize: '13px', color: '#FFFFFF' }}>
+                        <CircleIcon sx={{ color: colors[index % colors.length] ?? 'gray', fontSize: 10, marginRight: '8px' }} />
+                        <Typography variant="body2" sx={{ ...fontStyle, fontWeight: 600, fontSize: '13px', color: '#FFFFFF', whiteSpace: 'nowrap' }}>
                             {item.label}
                         </Typography>
                     </Box>
@@ -95,9 +91,9 @@ function PieCenterLabel({ children }) {
     );
 }
 
-export default function PlayerDamagePieChart({ chartData }) {
+export default function PlayerDamagePieChart({ chartData, height = '300px' }) {
     // ★AppContextから名簿を取得
-    const { playerNames = {} } = useContext(AppContext); // ここも = {} をつける
+    const { playerNames = {} } = useContext(AppContext);
 
     const totalDamage = (chartData || []).reduce((prev, curr) => prev + curr.value, 0);
 
@@ -106,50 +102,56 @@ export default function PlayerDamagePieChart({ chartData }) {
         ...item,
         id: index, // ユニークなIDを付与
         // ★ここでIDを名前に変換
-        label: playerNames[item.label] || item.label, 
+        label: playerNames[item.label] || item.label,
         value: item.value,
     }));
 
     return (
-        <Paper 
+        <Paper
             elevation={0}
-            sx={{ 
-                padding: "24px", 
-                height: "100%", 
-                borderRadius: '24px', 
-                backgroundColor: '#1C1C1E', 
+            sx={{
+                padding: "24px",
+                height: "100%", // 親がstretchなら100%で合う。親がautoなら中身に合う。
+                borderRadius: '24px',
+                backgroundColor: '#1C1C1E',
                 boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.5)',
                 border: '1px solid rgba(255,255,255,0.1)',
-                display: 'flex', 
-                flexDirection: 'column', 
-                justifyContent: 'center' 
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center'
             }}
         >
             <Typography variant="h6" sx={{ ...fontStyle, fontWeight: '700', color: '#FFFFFF', mb: 1 }}>
                 総合ダメージ
             </Typography>
 
-            <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <PieChart
-                    series={[
-                        {
-                            data: formattedData, // ★変換済みデータを渡す
-                            innerRadius: 65,
-                            outerRadius: 100,
-                            paddingAngle: 2,
-                            cornerRadius: 4,
-                            highlightScope: { fade: 'global', highlight: 'item' },
-                            faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
-                        },
-                    ]}
-                    slots={{
-                        legend: (props) => <CustomLegend {...props} />,
-                    }}
-                    colors={customColors}
-                    {...settings}
-                >
-                    {totalDamage > 0 ? <PieCenterLabel>{formatLargeNumber(totalDamage)}</PieCenterLabel> : <></>}
-                </PieChart>
+            {/* コンテンツエリアのサイズを固定または指定サイズにする */}
+            <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'visible', height: height === '100%' ? 'auto' : height }}>
+                <Box sx={{ flex: 1, height: '100%', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <PieChart
+                        series={[
+                            {
+                                data: formattedData,
+                                innerRadius: 60, // サイズ調整
+                                outerRadius: 80, // はみ出し防止のため縮小
+                                paddingAngle: 2,
+                                cornerRadius: 4,
+                                highlightScope: { fade: 'global', highlight: 'item' },
+                                faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
+                            },
+                        ]}
+                        // 凡例コンポーネントをnullに置き換えて強制非表示
+                        slots={{
+                            legend: () => null,
+                        }}
+                        colors={customColors}
+                        margin={{ right: 5 }}
+                    >
+                        {totalDamage > 0 ? <PieCenterLabel>{formatLargeNumber(totalDamage)}</PieCenterLabel> : <></>}
+                    </PieChart>
+                </Box>
+                {/* 凡例を横に配置 */}
+                <ExternalLegend data={formattedData} colors={customColors} />
             </Box>
         </Paper>
     );

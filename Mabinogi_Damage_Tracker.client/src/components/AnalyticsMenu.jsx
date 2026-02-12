@@ -1,9 +1,16 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { AppContext } from '../AppContext'
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Skeleton from '@mui/material/Skeleton';
+import Button from '@mui/material/Button';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
+import html2canvas from 'html2canvas';
+
 import DamageCard from './DamageCard';
 import PlayerCountCard from './PlayerCountCard';
 import TimeCard from './TimeCard';
@@ -42,6 +49,108 @@ function transformDataLineChartDamage(apiData, playerNames) {
     }));
 }
 
+// Helper component for dashboard content
+function AnalyticsDashboardContent({
+    isCapture,
+    combinedDamageOverTimeData,
+    totalDamage,
+    numberOfPlayer,
+    end_ut,
+    start_ut,
+    largestDamageInstances,
+    setGraphLargestDamageInstance,
+    bands,
+    graphBands,
+    setGraphBands,
+    totalHealing,
+    damagePieChartData,
+    damageOverTimeData,
+    graphLargestDamageInstance
+}) {
+    // Define grid sizes based on mode
+    const gridSizes = isCapture ? {
+        // Capture Mode: Compact & Square-ish
+        basicStats: { xs: 6, md: 3 },
+        pieChart: { xs: 12, md: 4 },
+        lineChart: { xs: 12, md: 8 }
+    } : {
+        // Normal Mode: Responsive
+        basicStats: { xs: 12, sm: 6, lg: 3 },
+        pieChart: { xs: 12, sm: 12, lg: 8, xl: 4 },
+        lineChart: { xs: 12, sm: 12, lg: 12, xl: 8 }
+    };
+
+    return (
+        <Grid
+            container
+            spacing={2}
+            alignItems="stretch"
+        >
+            {/* Row 1: Basic Stats */}
+            <Grid container size={12} spacing={2}>
+                <Grid size={gridSizes.basicStats} sx={{ height: isCapture ? '180px' : '220px' }} >
+                    {combinedDamageOverTimeData ?
+                        <DamageCard chartData={combinedDamageOverTimeData} totalDamage={totalDamage} />
+                        :
+                        <Skeleton variant="rounded" height="100%" />
+                    }
+                </Grid>
+                <Grid size={gridSizes.basicStats} sx={{ height: isCapture ? '180px' : '220px' }}>
+                    {numberOfPlayer ?
+                        <PlayerCountCard count={numberOfPlayer} />
+                        :
+                        <Skeleton variant="rounded" height="100%" />
+                    }
+                </Grid>
+                <Grid size={gridSizes.basicStats} sx={{ height: isCapture ? '180px' : '220px' }}>
+                    <TimeCard length_ut={end_ut - start_ut} />
+                </Grid>
+                <Grid size={gridSizes.basicStats} sx={{ height: isCapture ? '180px' : '220px' }}>
+                    {(largestDamageInstances && largestDamageInstances.length > 0) ?
+                        <LargestHitCard largestDamageInstances={largestDamageInstances} setGraphLargestDamageInstance={setGraphLargestDamageInstance} />
+                        :
+                        <Skeleton variant="rounded" height="100%" />
+                    }
+                </Grid>
+            </Grid>
+
+            {/* Row 2: Bursts & Healing */}
+            <Grid container size={12} spacing={2}>
+                {(bands && bands.length > 0) ?
+                    bands.map((band, index) =>
+                        <Grid key={`band_${index}`} size={gridSizes.basicStats} sx={{ height: isCapture ? '180px' : '250px' }}>
+                            <BurstCard bands={band} graphBands={graphBands} setGraphBands={setGraphBands} />
+                        </Grid>
+                    )
+                    : null
+                }
+                <Grid size={gridSizes.basicStats} sx={{ height: isCapture ? '180px' : 'auto' }}>
+                    {combinedDamageOverTimeData ?
+                        <HealingCard totalHealing={totalHealing} />
+                        :
+                        <Skeleton variant="rounded" height="100%" />
+                    }
+                </Grid>
+            </Grid>
+
+            {/* Row 3: Charts */}
+            <Grid container size={12} spacing={2}>
+                <Grid size={gridSizes.pieChart} sx={{ height: isCapture ? 'auto' : 'auto' }}>
+                    <PlayerDamagePieChart chartData={damagePieChartData} height={isCapture ? '100%' : '300px'} />
+                </Grid>
+
+                <Grid size={gridSizes.lineChart} sx={{ height: isCapture ? 'auto' : 'auto' }}>
+                    {(damageOverTimeData.length > 0) ?
+                        <DecoratedDamageOverTimeLineGraph chartData={damageOverTimeData} bands={graphBands} largestDamageInstance={graphLargestDamageInstance} start_ut={start_ut} />
+                        :
+                        <Skeleton variant="rounded" height="100%" />
+                    }
+                </Grid>
+            </Grid>
+        </Grid>
+    );
+}
+
 export default function AnalyticsMenu({ start_ut, end_ut }) {
     const { burstCount, largestDamageInstanceCount, playerNames } = useContext(AppContext)
     const [damageOverTimeData, setDamageOverTimeData] = useState([])
@@ -61,6 +170,69 @@ export default function AnalyticsMenu({ start_ut, end_ut }) {
     const [skillDamageData, setSkillDamageData] = useState([]);
     const [groupedSkillDamageData, setGroupedSkillDamageData] = useState([]);
     const [selectedSkillPlayer, setSelectedSkillPlayer] = useState("__all__");
+
+    // Screenshot feature
+    const captureRef = useRef(null);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("Screenshot copied to clipboard!"); // メッセージを動的に
+    const [isCapturing, setIsCapturing] = useState(false);
+
+    const handleScreenshot = async () => {
+        if (!captureRef.current || isCapturing) return;
+
+        setIsCapturing(true);
+
+        try {
+            const canvas = await html2canvas(captureRef.current, {
+                backgroundColor: '#101010', // Dark background for the image to match theme
+                scale: 1, // Default scale
+                useCORS: true, // Handle external images if any
+            });
+
+            canvas.toBlob(async (blob) => {
+                if (!blob) {
+                    console.error("Failed to generate blob");
+                    setSnackbarMessage("Failed to generate image.");
+                    setOpenSnackbar(true);
+                    setIsCapturing(false);
+                    return;
+                }
+
+                // クリップボードへの書き込みを試みる
+                try {
+                    await navigator.clipboard.write([
+                        new ClipboardItem({ 'image/png': blob })
+                    ]);
+                    setSnackbarMessage("Screenshot copied to clipboard!");
+                    setOpenSnackbar(true);
+                } catch (err) {
+                    // クリップボード書き込みに失敗した場合（HTTP環境など）はダウンロードに切り替える
+                    console.warn("Clipboard write failed, falling back to download:", err);
+
+                    const link = document.createElement('a');
+                    link.download = `dps_report_${new Date().getTime()}.png`;
+                    link.href = URL.createObjectURL(blob);
+                    link.click();
+
+                    // ダウンロードしたことをユーザーに伝える（AlertではなくSnackbarで）
+                    setSnackbarMessage("Clipboard failed. Image downloaded.");
+                    setOpenSnackbar(true);
+                } finally {
+                    setIsCapturing(false);
+                }
+            });
+        } catch (err) {
+            console.error("Screenshot failed:", err);
+            setSnackbarMessage("Screenshot failed.");
+            setOpenSnackbar(true);
+            setIsCapturing(false);
+        }
+    };
+
+    const handleCloseSnackbar = (event, reason) => {
+        if (reason === 'clickaway') return;
+        setOpenSnackbar(false);
+    };
 
 
     useEffect(() => {
@@ -254,67 +426,80 @@ export default function AnalyticsMenu({ start_ut, end_ut }) {
         getDamageBands()
     }, [start_ut, end_ut, burstCount, largestDamageInstanceCount]);
 
+    const dashboardProps = {
+        combinedDamageOverTimeData,
+        totalDamage,
+        numberOfPlayer,
+        end_ut,
+        start_ut,
+        largestDamageInstances,
+        setGraphLargestDamageInstance,
+        bands,
+        graphBands,
+        setGraphBands,
+        totalHealing,
+        damagePieChartData,
+        damageOverTimeData,
+        graphLargestDamageInstance
+    };
+
     return (
         <Box>
-            <Typography variant="h2" sx={{ marginBottom: "8px" }}>DPS詳細検索</Typography>
-            <Grid container spacing={{ xs: 1, md: 2 }} alignItems="stretch" sx={{ flexGrow: 1 }}>
-                { /* Total Damage Card */}
-                <Grid size={{ xs: 12, sm: 6, lg: 3 }} sx={{ height: '220px' }} >
-                    {combinedDamageOverTimeData ?
-                        <DamageCard chartData={combinedDamageOverTimeData} totalDamage={totalDamage} />
-                        :
-                        <Skeleton variant="rounded" />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, marginBottom: "8px" }}>
+                <Typography variant="h2">DPS詳細検索</Typography>
+                <Button
+                    variant="outlined"
+                    startIcon={isCapturing ? <CircularProgress size={20} color="inherit" /> : <ContentCopyIcon />}
+                    onClick={handleScreenshot}
+                    disabled={isCapturing}
+                    sx={{
+                        color: 'white',
+                        borderColor: 'rgba(255,255,255,0.3)',
+                        '&:hover': { borderColor: 'white', backgroundColor: 'rgba(255,255,255,0.1)' },
+                        '&.Mui-disabled': { color: 'rgba(255,255,255,0.3)', borderColor: 'rgba(255,255,255,0.1)' }
+                    }}
+                >
+                    {isCapturing ? "Capturing..." : "Copy Image"}
+                </Button>
+            </Box>
+
+            {/* 1. Normal Responsive Display (Visible) */}
+            <Box sx={{ mb: 2 }}>
+                <AnalyticsDashboardContent isCapture={false} {...dashboardProps} />
+            </Box>
+
+            {/* 2. Hidden Capture Display (Fixed Layout) */}
+            <Box
+                ref={captureRef}
+                sx={{
+                    position: 'fixed',
+                    left: '-10000px',
+                    top: 0,
+                    width: '1200px', // Fixed width for screenshot
+                    backgroundColor: '#101010',
+                    p: 2,
+                    borderRadius: 1,
+                    // Ensure text color and other styles are correct for dark mode
+                    color: 'white',
+                    // Override styles for child Paper components (Cards) during capture to fix "weird edges"
+                    '& .MuiPaper-root': {
+                        boxShadow: 'none !important', // Remove box-shadow to prevent artifacts
+                        border: '1px solid #333333 !important', // Use solid border color instead of rgba
+                        backgroundColor: '#1C1C1E !important', // Ensure background is solid
+                        backgroundImage: 'none !important', // Remove any potential gradient overlays
                     }
-                </Grid>
-                { /* Number of Players Card */}
-                <Grid size={{ xs: 12, sm: 6, lg: 3 }} sx={{ height: '220px' }}>
-                    {numberOfPlayer ?
-                        <PlayerCountCard count={numberOfPlayer} />
-                        :
-                        <Skeleton variant="rounded" />
-                    }
-                </Grid>
-                { /* Time Card */}
-                <Grid size={{ xs: 12, sm: 6, lg: 3 }} sx={{ height: '220px' }}>
-                    <TimeCard length_ut={end_ut - start_ut} />
-                </Grid>
-                { /* Largest Damage Instance Card */}
-                <Grid size={{ xs: 12, sm: 6, lg: 3 }} sx={{ height: '220px' }}>
-                    {(largestDamageInstances && largestDamageInstances.length > 0) ?
-                        <LargestHitCard largestDamageInstances={largestDamageInstances} setGraphLargestDamageInstance={setGraphLargestDamageInstance} />
-                        :
-                        <Skeleton variant="rounded" />
-                    }
-                </Grid>
-                { /* Largets Burst Cards */}
-                {(bands && bands.length > 0) ?
-                    bands.map((band, index) =>
-                        <Grid key={`band_${index}`} size={{ xs: 12, sm: 6, lg: 3 }} sx={{ height: '250px' }}>
-                            <BurstCard bands={band} graphBands={graphBands} setGraphBands={setGraphBands} />
-                        </Grid>
-                    )
-                    : null
-                }
-                { /* Total Healing Card */}
-                <Grid size={{ xs: 12, sm: 6, lg: 3 }} sx={{}}>
-                    {combinedDamageOverTimeData ?
-                        <HealingCard totalHealing={totalHealing} />
-                        :
-                        <Skeleton variant="rounded" />
-                    }
-                </Grid>
-                { /* Player Damange Pie Chart */}
-                <Grid size={{ xs: 12, sm: 12, lg: 8, xl: 4 }} >
-                    <PlayerDamagePieChart chartData={damagePieChartData} />
-                </Grid>
-                { /* Player Damage Line Chart */}
-                <Grid size={{ xs: 12, sm: 12, lg: 12, xl: 8 }} >
-                    {(damageOverTimeData.length > 0) ?
-                        <DecoratedDamageOverTimeLineGraph chartData={damageOverTimeData} bands={graphBands} largestDamageInstance={graphLargestDamageInstance} start_ut={start_ut} />
-                        :
-                        <Skeleton variant="rounded" />
-                    }
-                </Grid>
+                }}
+            >
+                <AnalyticsDashboardContent isCapture={true} {...dashboardProps} />
+            </Box>
+
+            {/* キャプチャ対象外のエリア (Skill Breakdown etc) */}
+            <Grid
+                container
+                spacing={{ xs: 1, md: 2 }}
+                alignItems="stretch"
+                sx={{ flexGrow: 1 }}
+            >
                 { /* Player Damage Scatter Plot - REMOVED */}
                 { /*
                 <Grid size={{ xs: 12, sm: 12, lg: 12, xl: 12 }} >
@@ -344,6 +529,12 @@ export default function AnalyticsMenu({ start_ut, end_ut }) {
                     }
                 </Grid>
             </Grid>
+
+            <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={handleCloseSnackbar}>
+                <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Box >
     );
 }
