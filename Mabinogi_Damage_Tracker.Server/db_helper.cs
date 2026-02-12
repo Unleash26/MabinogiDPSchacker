@@ -10,7 +10,7 @@ namespace Mabinogi_Damage_tracker
 {
     public class db_helper
     {
-        private static string db_connection = @"Data Source=trackerdb.db;";
+        public static string db_connection = @"Data Source=trackerdb.db;";
 
         public static void Initalize_db()
         {

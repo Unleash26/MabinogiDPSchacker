@@ -3,11 +3,33 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.StaticFiles;
 using Mabinogi_Damage_tracker;
 
-var builder = WebApplication.CreateBuilder(args);
+var exePath = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName) ?? AppContext.BaseDirectory;
+var internalDir = Path.Combine(exePath, "_internal");
+var useInternal = Directory.Exists(internalDir);
+var baseDir = useInternal ? internalDir : exePath;
 
 // --- DB/Parser初期化 ---
+// _internalがある場合はそこにDBがあるとみなす
+if (useInternal)
+{
+    // Change working directory so DLLs and relative file access work naturally
+    Directory.SetCurrentDirectory(baseDir);
+    db_helper.db_connection = $"Data Source={Path.Combine(baseDir, "trackerdb.db")};";
+}
 db_helper.Initalize_db();
 Parser.Start();
+
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = baseDir,
+    WebRootPath = Path.Combine(baseDir, "wwwroot") // Default, though we use static files manually below
+});
+
+// Load appsettings from the correct location
+builder.Configuration.SetBasePath(baseDir);
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
 // --- サービス登録 ---
 builder.Services.AddControllersWithViews(); // APIとMVC両方対応
@@ -31,7 +53,7 @@ if (DateTime.Now > expireDate)
 }
 
 // --- 2. 静的ファイルの絶対パス解決 ---
-var baseDir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName) ?? AppContext.BaseDirectory;
+// baseDir is already set correctly above
 var clientPath = Path.Combine(baseDir, "client");
 
 // --- 3. MIMEタイプ設定 ---

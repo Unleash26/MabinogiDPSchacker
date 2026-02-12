@@ -69,15 +69,45 @@ finally {
 }
 
 # --- 5. ASSEMBLE ---
-Write-Host ">>> ASSEMBLING: Copying artifacts to single folder..." -ForegroundColor Cyan
+Write-Host ">>> ASSEMBLING: Organizing artifacts into clean structure..." -ForegroundColor Cyan
 
-# Copy Client Build -> Server/publish/client
-$clientDest = "$publishDir\client"
+# Define paths
+$internalDir = "$publishDir\_internal"
+$clientDest = "$internalDir\client"
+
+# Create directories
+New-Item -ItemType Directory -Force -Path $internalDir | Out-Null
 New-Item -ItemType Directory -Force -Path $clientDest | Out-Null
+
+# 1. Copy Server Build (Output to publish folder from step 4)
+# Nothing to do, files are already in $publishDir
+# We need to MOVE everything except .exe to treated internal folder
+
+$items = Get-ChildItem -Path $publishDir -Exclude "Mabinogi_Damage_Tracker.Server.exe", "_internal"
+foreach ($item in $items) {
+    Move-Item -Path $item.FullName -Destination $internalDir -Force
+}
+
+# 2. Copy Overlay App
+# Contains OverlayApp.exe and dependencies
+# We want OverlayApp.exe in ROOT, dependencies in _internal?
+# OverlayApp (WPF) might need its dependencies next to it if not SingleFile.
+# But -p:PublishSingleFile=true was used.
+# Let's copy OverlayApp.exe to ROOT, and everything else to _internal
+
+$overlayItems = Get-ChildItem -Path "$overlayDir\publish_final"
+foreach ($item in $overlayItems) {
+    if ($item.Name -like "*.exe") {
+        Copy-Item -Path $item.FullName -Destination $publishDir -Force
+    }
+    else {
+        Copy-Item -Path $item.FullName -Destination $internalDir -Recurse -Force
+    }
+}
+
+# 3. Copy Client Build -> _internal/client
 Copy-Item "$clientDir\build\*" -Destination $clientDest -Recurse -Force
 
-# Copy Overlay Build -> Server/publish
-Copy-Item "$overlayDir\publish_final\*" -Destination $publishDir -Recurse -Force
-
 Write-Host ">>> Build Complete! Artifacts are in: $publishDir" -ForegroundColor Green
-Write-Host ">>> Executable: Mabinogi_Damage_Tracker.Server.exe" -ForegroundColor Green
+Write-Host ">>> Executable: Mabinogi_Damage_Tracker.Server.exe (Root)" -ForegroundColor Green
+Write-Host ">>> Executable: OverlayApp.exe (Root)" -ForegroundColor Green
