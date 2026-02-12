@@ -48,8 +48,8 @@ function transformDataLineChartDamage(apiData) {
 }
 
 export default function LiveMenu() {
-    // ★名簿 (playerNames) をここで受け取る！
-    const { pollingRate = 1000, playerNames = {} } = useContext(AppContext) || {};
+    // ★名簿 (playerNames) と除外ロジック (isEnemyExcluded) をここで受け取る！
+    const { pollingRate = 1000, playerNames = {}, isEnemyExcluded } = useContext(AppContext) || {};
 
     const [recording, setRecording] = useState(false);
     const [damagePieChartData, setDamagePieChartData] = useState([]);
@@ -70,123 +70,178 @@ export default function LiveMenu() {
     const [selectedPlayer, setSelectedPlayer] = useState('__all__');
 
     async function GetNewDamageData(lastId) {
-        await fetch(`http://${window.location.hostname}:5004/Home/GetAllDamagesGroupedByPlayersAfterId?lastFetchedId=${lastId}`)
+        // ★生データを取得してクライアント側で集計する方式に変更
+        await fetch(`http://${window.location.hostname}:5004/Home/GetRawDamagesAfterId?lastFetchedId=${lastId}`)
             .then(response => response.json())
             .then(res => {
-                if (!res) return null
+                if (!res || !Array.isArray(res) || res.length === 0) return null;
 
-                lastFetchedIdRef.current = res.lastId
-                const data = res.data
-                const newPieChartData = transformDataPieDamage(data);
+                // 最後に取得したIDを更新
+                const newLastId = res[res.length - 1].id;
+                lastFetchedIdRef.current = newLastId;
 
+                // 1. フィルタリング (除外対象の敵IDをスキップ)
+                const filteredData = res.filter(item => !isEnemyExcluded(item.enemyId));
+
+                if (filteredData.length === 0) return;
+
+                // 2. 集計処理 (PieChart, DoT, SkillDamage)
+
+                // (A) PieChart Data Aggregation
                 setDamagePieChartData(prev => {
-                    // ★IDを保持しつつマージするようにロジック修正
-                    const prevMap = new Map(prev.map(item => [item.label, item]));
+                    const prevMap = new Map(prev.map(item => [item.id, item])); // IDベースで管理
 
-                    newPieChartData.forEach((newItem) => {
-                        const { label, value, id } = newItem;
-                        const existing = prevMap.get(label);
+                    filteredData.forEach(item => {
+                        const { playerId, damage, playerName } = item;
+                        // const label = playerNames[playerId] || playerName; // ラベル解決はレンダリング時にやるのでここではID重視
+
+                        const existing = prevMap.get(playerId);
                         if (existing) {
-                            // 既存があれば値を足し、IDも更新（最新のものに）
-                            prevMap.set(label, { ...existing, value: existing.value + value, id });
+                            prevMap.set(playerId, { ...existing, value: existing.value + damage });
                         } else {
-                            // 新規ならそのままセット
-                            prevMap.set(label, { label, value, id });
+                            prevMap.set(playerId, { id: playerId, label: playerName, value: damage });
                         }
                     });
 
                     return Array.from(prevMap.values()).sort((a, b) => b.value - a.value);
                 });
 
-                const newTotalDamage = newPieChartData.reduce((prev, curr) => prev + curr.value, 0)
-                setTotalDamage((prev) => prev + newTotalDamage)
+                // (B) Total Damage
+                const newTotalDamage = filteredData.reduce((sum, item) => sum + item.damage, 0);
+                setTotalDamage(prev => prev + newTotalDamage);
 
-                const newDoTData = transformDataLineChartDamage(data);
+                // (C) Damage Over Time (DoT) Aggregation
+                // ここは少し複雑。既存のデータ構造に合わせて時系列データを追加していく。
+                // 簡易化のため、受け取ったデータの `ut` (Unix Time) を使ってバケット分けする。
 
                 setDamageOverTimeData(prev => {
                     const prevMap = new Map(prev.map(p => [p.id, { ...p }]));
-                    const updatedIds = new Set();
-                    const pointsAdded = newDoTData.length > 0 ? newDoTData[0].data.length : 0;
 
-                    newDoTData.forEach(({ id, label, data, area, showMark }) => {
-                        updatedIds.add(id);
+                    // 新しいデータをユーザーごと・時間ごとに整理
+                    const userTimeBuckets = {}; // { playerId: { ut: damage, ... } }
+                    let minUt = Infinity;
+                    let maxUt = -Infinity;
 
-                        if (prevMap.has(id)) {
-                            const existingData = prevMap.get(id).data;
-                            const lastTotal = existingData[existingData.length - 1] || 0;
+                    filteredData.forEach(item => {
+                        const { playerId, damage, ut } = item;
+                        if (!userTimeBuckets[playerId]) userTimeBuckets[playerId] = {};
+                        userTimeBuckets[playerId][ut] = (userTimeBuckets[playerId][ut] || 0) + damage;
 
-                            const cumulativeData = data.reduce((acc, dmg, i) => {
-                                acc.push((i === 0 ? lastTotal : acc[i - 1]) + dmg);
-                                return acc;
-                            }, []);
-
-                            prevMap.get(id).data = existingData.concat(cumulativeData);
-                        } else {
-                            const longestHistory = prev.length === 0 ? 0 : Math.max(...prev.map(p => p.data.length));
-                            const zeroHistory = new Array(longestHistory).fill(0);
-                            const cumulativeData = data.reduce((acc, dmg, i) => {
-                                acc.push((acc[i - 1] || 0) + dmg);
-                                return acc;
-                            }, []);
-
-                            const newData = zeroHistory.concat(cumulativeData)
-                            prevMap.set(id, { id, label, data: newData, area, showMark });
-                        }
+                        if (ut < minUt) minUt = ut;
+                        if (ut > maxUt) maxUt = ut;
                     });
 
-                    if (pointsAdded > 0) {
-                        for (const player of prevMap.values()) {
-                            if (!updatedIds.has(player.id)) {
-                                const existingData = player.data;
-                                const lastTotal = existingData.length > 0 ? existingData[existingData.length - 1] : 0;
-                                player.data = existingData.concat(new Array(pointsAdded).fill(lastTotal));
-                            }
+                    // 既存のデータの最後のUTを取得 (なければ startUT)
+                    // Note: prev data is simple array of cumulative damage. We assume polling happens sequentially.
+                    // This logic is tricky without keeping track of time map. 
+                    // 既存ロジックは単純に配列に追記しているので、データが来た順に追記する形にする。
+                    // 正確な秒単位同期は難しいが、Live Viewとしては「新しく来たデータ」をプロットすれば十分。
+
+                    // 1. 各ユーザーの現在の合計ダメージを取得
+                    const currentTotals = new Map();
+                    prevMap.forEach((val, key) => {
+                        currentTotals.set(key, val.data[val.data.length - 1] || 0);
+                    });
+
+                    // 2. 登場した全ユーザーID
+                    const allUserIds = new Set([...prevMap.keys(), ...Object.keys(userTimeBuckets).map(Number)]);
+
+                    // 3. 今回のデータセットの期間分のデータポイントを作成 (minUt ~ maxUt)
+                    // 生データが飛び飛びの場合もあるが、ここではデータが存在する ut だけ処理する簡易実装とするか、
+                    // あるいはデータ配列の長さを合わせる必要がある。
+                    // 以前のロジック: "pointsAdded = newDoTData[0].data.length" -> 他のプレイヤーも同じ長さ延ばす
+
+                    // 簡易実装: 今回のバッチ処理で、存在する UT のユニークなリストを作成し、時系列順に並べる
+                    const uniqueUts = sortedUniqueUt(filteredData);
+
+                    if (uniqueUts.length === 0) return Array.from(prevMap.values());
+
+                    // 各ユーザーについて、uniqueUts の各時刻でのダメージ累積を計算
+                    allUserIds.forEach(playerId => {
+                        let playerEntry = prevMap.get(playerId);
+                        if (!playerEntry) {
+                            // 新規プレイヤー
+                            // 既存のグラフの長さ分、0埋めする
+                            const existingLength = prev.length > 0 ? prev[0].data.length : 0; // 誰か一人のデータ長を参照
+                            const zeroHistory = new Array(existingLength).fill(0);
+
+                            // 名前解決は後回しだが、とりあえず生データから名前を探す、なければID
+                            const pName = filteredData.find(d => d.playerId === playerId)?.playerName || `Player ${playerId}`;
+
+                            playerEntry = { id: playerId, label: pName, data: zeroHistory, area: false, showMark: false };
+                            prevMap.set(playerId, playerEntry);
+                            currentTotals.set(playerId, 0); // 初期値0
                         }
-                    }
 
-                    return Array.from(prevMap.values())
+                        let cumulative = currentTotals.get(playerId);
+                        const newDataPoints = uniqueUts.map(ut => { // eslint-disable-line no-unused-vars
+                            const dmg = (userTimeBuckets[playerId] && userTimeBuckets[playerId][ut]) || 0;
+                            cumulative += dmg;
+                            return cumulative;
+                        });
+
+                        playerEntry.data = playerEntry.data.concat(newDataPoints);
+                    });
+
+                    return Array.from(prevMap.values());
                 });
-            })
-            .catch(error => console.error('Error:', error));
 
-        // スキル別ダメージを取得（プレイヤーごとに保持）
-        await fetch(`http://${window.location.hostname}:5004/Home/GetDamageBySkillAfterId?lastFetchedId=${lastId}`)
-            .then(response => response.json())
-            .then(res => {
-                if (!res || !res.data) return;
 
-                // プレイヤー別スキルダメージを更新
+                // (D) Skill Damage Aggregation
                 setSkillDamageByPlayer(prev => {
                     const updated = { ...prev };
-                    res.data.forEach(player => {
-                        const playerId = player.playerId;
-                        const playerName = playerNames[playerId] || player.playerName || `Player ${playerId}`;
+                    filteredData.forEach(item => {
+                        const { playerId, damage, skill, subskill, playerName } = item; // skill, subskill are IDs here? 
+                        // Wait, raw data returns skill ID (int). We need skill Names?
+                        // The server's `Get_RawDamages_...` returns `skill` (int). 
+                        // We need a way to map Skill ID to Name client-side OR server needs to join skill names.
+                        // Currently server joins `players` but not skill names in raw query.
+                        // `GetDamageBySkill...` endpoint uses `skill_ids` class to map.
+                        // For now, let's use the ID or try to fetch skill map? 
+                        // Actually, client's `SkillDamagePieChart` handles ID-to-Name if provided with IDs?
+                        // No, `SkillDamagePieChart` uses `skill_names_ja.json` mapping.
+                        // So we should just use the ID here, and let the chart component map it.
+                        // But `SkillDamagePieChart` expects `skillName` property. Let's use ID as name for now, 
+                        // and ensure `SkillDamagePieChart` can handle it.
+                        // Wait, `SkillDamagePieChart.jsx` does `const name = translations[item.skillName] || item.skillName`.
+                        // So if we pass ID as string, it will look up in translations.
+
+                        const skillName = String(skill); // ID as string
+
                         if (!updated[playerId]) {
                             updated[playerId] = { playerName, skills: {} };
                         }
-                        updated[playerId].playerName = playerName;
-                        (player.skills || []).forEach(skill => {
-                            updated[playerId].skills[skill.skillName] =
-                                (updated[playerId].skills[skill.skillName] || 0) + skill.damage;
-                        });
+                        // Update player name if missing
+                        if (!updated[playerId].playerName && playerName) updated[playerId].playerName = playerName;
+
+                        updated[playerId].skills[skillName] = (updated[playerId].skills[skillName] || 0) + damage;
                     });
                     return updated;
                 });
 
-                // 全体集計も更新
+                // Update total skill damage (for sorting/ranking)
                 setSkillDamageData(prev => {
+                    // Re-calculate from `setSkillDamageByPlayer` state is cleaner but async state issue using `filteredData` directly
+                    // Merge `prev` and `filteredData`
                     const skillMap = new Map(prev.map(s => [s.skillName, s.damage]));
-                    res.data.forEach(player => {
-                        (player.skills || []).forEach(skill => {
-                            skillMap.set(skill.skillName, (skillMap.get(skill.skillName) || 0) + skill.damage);
-                        });
+                    filteredData.forEach(item => {
+                        const skillName = String(item.skill);
+                        skillMap.set(skillName, (skillMap.get(skillName) || 0) + item.damage);
                     });
+
                     return Array.from(skillMap.entries())
                         .map(([skillName, damage]) => ({ skillName, damage }))
                         .sort((a, b) => b.damage - a.damage);
                 });
+
             })
-            .catch(error => console.error('スキルダメージ取得エラー:', error));
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Helper for DoT: Sort unique UTs
+    function sortedUniqueUt(data) {
+        const uts = new Set(data.map(d => d.ut));
+        return Array.from(uts).sort((a, b) => a - b);
     }
 
     useEffect(() => {

@@ -180,6 +180,18 @@ namespace Mabinogi_Damage_tracker.Controllers
             return Json(skill_damage);
         }
 
+        public JsonResult GetRawDamagesAfterId(int lastFetchedId)
+        {
+            object damage_series = db_helper.Get_RawDamages_AfterId(lastFetchedId);
+            return Json(damage_series);
+        }
+
+        public JsonResult GetRawDamagesBetweenUt(int start_ut, int end_ut)
+        {
+            object damage_series = db_helper.Get_RawDamages_BetweenUT(start_ut, end_ut);
+            return Json(damage_series);
+        }
+
         /// <summary>
         /// スキル別の総合ダメージを取得（全プレイヤー合計）- 円グラフ用
         /// </summary>

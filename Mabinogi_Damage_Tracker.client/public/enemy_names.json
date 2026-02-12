@@ -1,0 +1,14 @@
+[
+    {
+        "id": "123456",
+        "name": "Enemy A (Example)"
+    },
+    {
+        "id": "789012",
+        "name": "Enemy B (Example)"
+    },
+    {
+        "id": "345678",
+        "name": "Enemy C (Example)"
+    }
+]

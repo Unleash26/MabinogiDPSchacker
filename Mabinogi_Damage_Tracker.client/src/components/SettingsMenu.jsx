@@ -13,17 +13,19 @@ import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
+import Checkbox from '@mui/material/Checkbox';
 
 // デザイン共通設定（フォント）
-const fontStyle = { 
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif' 
+const fontStyle = {
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif'
 };
 
 export default function SettingsMenu() {
     const { pollingRate, setPollingRate } = useContext(AppContext);
     const { burstCount, setBurstCount } = useContext(AppContext);
     const { largestDamageInstanceCount, setLargestDamageInstantCount } = useContext(AppContext);
-    
+    const { excludedEnemyIds, toggleExclusion, enemyNameMap } = useContext(AppContext);
+
     const [adapters, setAdapters] = useState([]);
     const [selectedAdapter, setSelectedAdapter] = useState('');
     const [open, setOpen] = useState(false);
@@ -98,58 +100,58 @@ export default function SettingsMenu() {
                 Settings
             </Typography>
 
-            <Paper 
+            <Paper
                 elevation={0}
-                sx={{ 
-                    padding: "32px", 
-                    borderRadius: '24px', 
+                sx={{
+                    padding: "32px",
+                    borderRadius: '24px',
                     // ★ここをダークに変更
                     backgroundColor: '#1C1C1E', // Apple Dark Gray
                     boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.5)',
                     border: '1px solid rgba(255,255,255,0.1)',
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    gap: '16px' 
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px'
                 }}
             >
-                <SettingItem 
-                    title="Number of Burst" 
+                <SettingItem
+                    title="Number of Burst"
                     description="Sets the number of unique damage burst to view in the analytics page."
                 >
                     <NumberField min={1} max={16}
                         value={burstCount}
-                        onValueChange={(value) => setBurstCount(value)} 
+                        onValueChange={(value) => setBurstCount(value)}
                     />
                 </SettingItem>
 
                 <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
 
-                <SettingItem 
-                    title="Number of Largest Hits" 
+                <SettingItem
+                    title="Number of Largest Hits"
                     description="Sets the number of unique single largest damage instances to view."
                 >
                     <NumberField min={1} max={16}
                         value={largestDamageInstanceCount}
-                        onValueChange={(value) => setLargestDamageInstantCount(value)} 
+                        onValueChange={(value) => setLargestDamageInstantCount(value)}
                     />
                 </SettingItem>
 
                 <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
 
-                <SettingItem 
-                    title="Polling Rate" 
+                <SettingItem
+                    title="Polling Rate"
                     description="Sets the interval for receving data while recording."
                 >
                     <NumberField min={10} max={10000} units="ms"
                         value={pollingRate}
-                        onValueChange={(value) => setPollingRate(value)} 
+                        onValueChange={(value) => setPollingRate(value)}
                     />
                 </SettingItem>
 
                 <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
 
-                <SettingItem 
-                    title="Select Adapter" 
+                <SettingItem
+                    title="Select Adapter"
                     description="Sets the adapter for the parser to use."
                 >
                     <FormControl sx={{ minWidth: 180 }} size="small">
@@ -160,7 +162,7 @@ export default function SettingsMenu() {
                             value={selectedAdapter}
                             onChange={handleAdapterChange}
                             label="Adapter"
-                            sx={{ 
+                            sx={{
                                 borderRadius: '12px',
                                 color: '#FFFFFF',
                                 '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.3)' },
@@ -179,16 +181,47 @@ export default function SettingsMenu() {
 
                 <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
 
-                <SettingItem 
-                    title="Restart Parse" 
+                <SettingItem
+                    title="Target Filter"
+                    description="Exclude specific targets from damage tracking."
+                >
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: 200, overflowY: 'auto' }}>
+                        {enemyNameMap.length > 0 ? (
+                            enemyNameMap.map((enemy) => {
+                                const isExcluded = excludedEnemyIds.includes(enemy.id);
+                                return (
+                                    <Box key={enemy.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Checkbox
+                                            checked={isExcluded}
+                                            onChange={() => toggleExclusion(enemy.id)}
+                                            sx={{ color: 'rgba(255,255,255,0.7)', '&.Mui-checked': { color: '#0A84FF' } }}
+                                        />
+                                        <Typography sx={{ color: '#FFFFFF', fontSize: '14px' }}>
+                                            {enemy.name} <span style={{ color: '#A1A1A6', fontSize: '12px' }}>(ID: {enemy.id}...)</span>
+                                        </Typography>
+                                    </Box>
+                                );
+                            })
+                        ) : (
+                            <Typography sx={{ color: '#A1A1A6', fontSize: '13px' }}>
+                                No enemy definitions found in enemy_names.json
+                            </Typography>
+                        )}
+                    </Box>
+                </SettingItem>
+
+                <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+
+                <SettingItem
+                    title="Restart Parse"
                     description="Restarts the parser service."
                 >
-                    <Button 
-                        color="error" 
+                    <Button
+                        color="error"
                         variant="outlined"
-                        sx={{ 
-                            borderRadius: '50px', 
-                            textTransform: 'none', 
+                        sx={{
+                            borderRadius: '50px',
+                            textTransform: 'none',
                             fontWeight: 'bold',
                             borderColor: '#FF453A', // iOS Red Dark Mode
                             color: '#FF453A',

@@ -10,7 +10,7 @@ import TimeCard from './TimeCard';
 import TrimLineGraph from './TrimLineGraph';
 import PlayerDamagePieChart from './PlayerDamagePieChart';
 import DecoratedDamageOverTimeLineGraph from './DecoratedDamageOverTimeLineGraph';
-import DamageScatterPlot from './DamageScatterPlot';
+// import DamageScatterPlot from './DamageScatterPlot'; // Removed
 import LargestHitCard from './LargestHitCard';
 import BurstCard from './BurstCard';
 import HealingCard from './HealingCard';
@@ -54,8 +54,8 @@ export default function AnalyticsMenu({ start_ut, end_ut }) {
     const [graphLargestDamageInstance, setGraphLargestDamageInstance] = useState(null)
     const [bands, setBands] = useState([])
     const [graphBands, setGraphBands] = useState([])
-    // Scatter Plot
-    const [scatterPlotSeries, setScatterPlotSeries] = useState([]);
+    // Scatter Plot Removed
+    // const [scatterPlotSeries, setScatterPlotSeries] = useState([]);
 
     // スキル別ダメージ
     const [skillDamageData, setSkillDamageData] = useState([]);
@@ -192,17 +192,21 @@ export default function AnalyticsMenu({ start_ut, end_ut }) {
             })
 
 
+
+
+        /* Scatter Plot fetch removed */
+        /*
         fetch(`http://${window.location.hostname}:5004/Home/GetDamagesBetweenUt?start_ut=${start_ut}&end_ut=${end_ut}`)
             .then(response => response.json())
             .then(data => {
                 if (!data || data.length === 0) return;
                 const dmgMap = new Map();
                 const playerIdMap = new Map();
-
+    
                 const series = data.reduce((series, damage_simple) => {
                     const displayName = playerNames[damage_simple.player_id] || damage_simple.player_name;
                     let entry = series.find((element) => element.playerId === damage_simple.player_id);
-
+    
                     if (!entry) {
                         entry = {
                             playerId: damage_simple.player_id,
@@ -214,22 +218,23 @@ export default function AnalyticsMenu({ start_ut, end_ut }) {
                         dmgMap.set(damage_simple.player_id, 0)
                         series.push(entry)
                     }
-
+    
                     entry.data.push({
                         x: damage_simple.unix_timestamp,
                         y: damage_simple.damage,
                         id: entry.data.length
                     });
-
+    
                     dmgMap.set(damage_simple.player_id, dmgMap.get(damage_simple.player_id) + damage_simple.damage);
-
+    
                     return series
                 }, []);
-
+    
                 series.sort((a, b) => dmgMap.get(b.playerId) - dmgMap.get(a.playerId))
-
+    
                 setScatterPlotSeries(series)
             })
+        */
 
         // スキル別ダメージを取得（全プレイヤー合計）
         fetch(`http://${window.location.hostname}:5004/Home/GetTotalDamageBySkill?start_ut=${start_ut}&end_ut=${end_ut}`)
@@ -310,7 +315,8 @@ export default function AnalyticsMenu({ start_ut, end_ut }) {
                         <Skeleton variant="rounded" />
                     }
                 </Grid>
-                { /* Player Damage Scatter Plot */}
+                { /* Player Damage Scatter Plot - REMOVED */}
+                { /*
                 <Grid size={{ xs: 12, sm: 12, lg: 12, xl: 12 }} >
                     {(scatterPlotSeries.length > 0) ?
                         <DamageScatterPlot series={scatterPlotSeries} />
@@ -318,6 +324,7 @@ export default function AnalyticsMenu({ start_ut, end_ut }) {
                         <Skeleton variant="rounded" />
                     }
                 </Grid>
+                */ }
                 { /* Skill Damage Pie Chart */}
                 <Grid size={{ xs: 12, sm: 12, lg: 12, xl: 8 }} >
                     <SkillDamagePieChart

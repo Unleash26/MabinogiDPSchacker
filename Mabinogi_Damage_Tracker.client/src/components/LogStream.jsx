@@ -9,9 +9,10 @@ export default function LogStream() {
     const context = useContext(AppContext) || {};
     // ★安全装置2: playerNames がなければ空の辞書 {} を使う (これが重要！)
     const playerNames = context.playerNames || {};
-    
+
     const [logs, setLogs] = useState([]);
-    const bottomRef = useRef(null);
+    const containerRef = useRef(null);
+    const [autoScroll, setAutoScroll] = useState(true);
 
     // ログを取得し続ける処理
     useEffect(() => {
@@ -38,16 +39,30 @@ export default function LogStream() {
         };
     }, []);
 
-    // ログが更新されたら自動で一番下までスクロール
+    // ログが更新されたら条件付きでスクロール
+    // ユーザーが上にスクロールしている間は勝手に動かさない
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [logs]);
+        if (autoScroll && containerRef.current) {
+            containerRef.current.scrollTop = containerRef.current.scrollHeight;
+        }
+    }, [logs, autoScroll]);
+
+    const handleScroll = () => {
+        if (containerRef.current) {
+            const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+            // 底から50px以内にいれば「追従モード」とみなす
+            const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+            if (isAtBottom !== autoScroll) {
+                setAutoScroll(isAtBottom);
+            }
+        }
+    };
 
     // IDを名前に変換する関数
     const formatLogMessage = (message) => {
         if (!message) return "";
         let formatted = message;
-        
+
         // ★安全装置3: playerNames が本当にデータを持っている時だけ実行する
         if (playerNames && Object.keys(playerNames).length > 0) {
             Object.keys(playerNames).forEach(id => {
@@ -61,28 +76,29 @@ export default function LogStream() {
     };
 
     return (
-        <Paper 
+        <Paper
+            ref={containerRef}
+            onScroll={handleScroll}
             elevation={0}
-            sx={{ 
-                height: '200px', 
-                overflowY: 'auto', 
-                backgroundColor: '#000000', 
+            sx={{
+                height: '200px',
+                overflowY: 'auto',
+                backgroundColor: '#000000',
                 border: '1px solid #333',
                 p: 1,
-                fontFamily: 'Consolas, monospace' 
+                fontFamily: 'Consolas, monospace'
             }}
         >
             <Typography variant="subtitle2" sx={{ color: '#666', mb: 1, position: 'sticky', top: 0, bgcolor: '#000' }}>
                 Event Logs (Real-time)
             </Typography>
-            
+
             {logs.map((log, index) => (
                 <Typography key={index} variant="body2" sx={{ fontSize: '0.8rem', lineHeight: 1.2, color: '#00ff00' }}>
-                     {/* 変換関数を通す */}
+                    {/* 変換関数を通す */}
                     {formatLogMessage(log)}
                 </Typography>
             ))}
-            <div ref={bottomRef} />
         </Paper>
     );
 }

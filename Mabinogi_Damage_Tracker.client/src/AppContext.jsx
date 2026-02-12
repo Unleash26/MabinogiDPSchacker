@@ -55,9 +55,14 @@ export const AppProvider = ({ children }) => {
                 const response = await fetch(`http://${window.location.hostname}:5004/Home/GetAllPlayers`);
                 const data = await response.json();
                 const savedNames = JSON.parse(localStorage.getItem('custom_names') || '{}');
-                if (data.value && Array.isArray(data.value)) {
+
+                // data.value is sometimes wrapped, sometimes direct list depending on API response format in previous code. 
+                // Checking if it's array or wrapped in value.
+                const playersList = Array.isArray(data) ? data : (data.value || []);
+
+                if (Array.isArray(playersList)) {
                     const map = {};
-                    data.value.forEach(p => {
+                    playersList.forEach(p => {
                         const localName = savedNames[p.playerId];
                         // Sync: If we have a local name but DB has something else, push local name to DB
                         if (localName && localName !== p.playerName) {
@@ -75,6 +80,42 @@ export const AppProvider = ({ children }) => {
         fetchNames();
     }, []);
 
+    // ==========================================
+    // 4. ターゲット除外機能 (Target Filtering)
+    // ==========================================
+    const [excludedEnemyIds, setExcludedEnemyIds] = useState(() => JSON.parse(localStorage.getItem('excludedEnemyIds') || '[]'));
+    const [enemyNameMap, setEnemyNameMap] = useState([]);
+
+    // 起動時に敵の名前リスト（JSON）を読み込む
+    useEffect(() => {
+        fetch('/enemy_names.json')
+            .then(res => res.json())
+            .then(data => setEnemyNameMap(data))
+            .catch(err => console.error("Failed to load enemy_names.json:", err));
+    }, []);
+
+    //save excluded ID's
+    useEffect(() => {
+        localStorage.setItem('excludedEnemyIds', JSON.stringify(excludedEnemyIds));
+    }, [excludedEnemyIds]);
+
+    // ヘルパー: 指定された enemyId が除外対象かチェック
+    // excludedEnemyIds に含まれる文字列で「始まる」IDを除外する
+    const isEnemyExcluded = (enemyId) => {
+        const strId = String(enemyId);
+        return excludedEnemyIds.some(prefix => strId.startsWith(prefix));
+    };
+
+    const toggleExclusion = (prefix) => {
+        setExcludedEnemyIds(prev => {
+            if (prev.includes(prefix)) {
+                return prev.filter(id => id !== prefix);
+            } else {
+                return [...prev, prefix];
+            }
+        });
+    };
+
     // 全部まとめて配信！
     return (
         <AppContext.Provider value={{
@@ -83,7 +124,9 @@ export const AppProvider = ({ children }) => {
             playerNames, renamePlayer,
             burstCount, setBurstCount,
             largestDamageInstanceCount, setLargestDamageInstanceCount,
-            pollingRate, setPollingRate
+            pollingRate, setPollingRate,
+            // Target Filtering
+            excludedEnemyIds, toggleExclusion, isEnemyExcluded, enemyNameMap
         }}>
             {children}
         </AppContext.Provider>

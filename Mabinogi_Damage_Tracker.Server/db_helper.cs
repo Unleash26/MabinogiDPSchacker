@@ -783,6 +783,132 @@ namespace Mabinogi_Damage_tracker
             return query_results;
         }
 
+        public static List<object> Get_RawDamages_AfterId(Int32 lastFetchedId)
+        {
+            try
+            {
+                using (SqliteConnection connection = new SqliteConnection(db_connection))
+                {
+                    connection.Open();
+                    // enemyid を含めて取得
+                    using (SqliteCommand command = new SqliteCommand(@"
+                        SELECT damages.id, damages.playerid, damage, playername, ut, enemyid, skill, subskill, wound, manadamage
+                        FROM damages
+                        left join players on damages.playerid = players.playerid
+                        WHERE damages.id > @lastFetchedId
+                        ORDER BY ut ASC;
+                    ", connection))
+                    {
+                        command.Parameters.AddWithValue("@lastFetchedId", lastFetchedId);
+
+                        var resultList = new List<object>();
+
+                        using (SqliteDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows == false) { return null; }
+
+                            while (reader.Read())
+                            {
+                                long id = reader.GetInt64(reader.GetOrdinal("id"));
+                                long playerId = reader.GetInt64(reader.GetOrdinal("playerid"));
+                                string playerName = reader.IsDBNull(reader.GetOrdinal("playername")) ? $"{playerId}" : reader.GetString(reader.GetOrdinal("playername"));
+                                double dmg = reader.GetDouble(reader.GetOrdinal("damage"));
+                                long ut = reader.GetInt64(reader.GetOrdinal("ut"));
+                                long enemyId = reader.GetInt64(reader.GetOrdinal("enemyid"));
+                                int skill = reader.GetInt32(reader.GetOrdinal("skill"));
+                                int subskill = reader.GetInt32(reader.GetOrdinal("subskill"));
+                                double wound = reader.IsDBNull(reader.GetOrdinal("wound")) ? 0 : reader.GetDouble(reader.GetOrdinal("wound"));
+                                long manadamage = reader.IsDBNull(reader.GetOrdinal("manadamage")) ? 0 : reader.GetInt64(reader.GetOrdinal("manadamage"));
+
+                                resultList.Add(new
+                                {
+                                    id = id,
+                                    playerId = playerId,
+                                    playerName = playerName,
+                                    damage = dmg,
+                                    ut = ut,
+                                    enemyId = enemyId,
+                                    skill = skill,
+                                    subskill = subskill,
+                                    wound = wound,
+                                    manadamage = manadamage
+                                });
+                            }
+                        }
+                        return resultList;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception: " + ex.ToString());
+                return null;
+            }
+        }
+
+        public static List<object> Get_RawDamages_BetweenUT(Int32 start_ut, Int32 end_ut)
+        {
+            try
+            {
+                using (SqliteConnection connection = new SqliteConnection(db_connection))
+                {
+                    connection.Open();
+                    using (SqliteCommand command = new SqliteCommand(@"
+                        SELECT damages.id, damages.playerid, damage, playername, ut, enemyid, skill, subskill, wound, manadamage
+                        FROM damages
+                        left join players on damages.playerid = players.playerid
+                        WHERE ut BETWEEN @start_ut AND @end_ut
+                        ORDER BY ut ASC;
+                    ", connection))
+                    {
+                        command.Parameters.AddWithValue("@start_ut", start_ut);
+                        command.Parameters.AddWithValue("@end_ut", end_ut);
+
+                        var resultList = new List<object>();
+
+                        using (SqliteDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows == false) { return null; }
+
+                            while (reader.Read())
+                            {
+                                long id = reader.GetInt64(reader.GetOrdinal("id"));
+                                long playerId = reader.GetInt64(reader.GetOrdinal("playerid"));
+                                string playerName = reader.IsDBNull(reader.GetOrdinal("playername")) ? $"{playerId}" : reader.GetString(reader.GetOrdinal("playername"));
+                                double dmg = reader.GetDouble(reader.GetOrdinal("damage"));
+                                long ut = reader.GetInt64(reader.GetOrdinal("ut"));
+                                long enemyId = reader.GetInt64(reader.GetOrdinal("enemyid"));
+                                int skill = reader.GetInt32(reader.GetOrdinal("skill"));
+                                int subskill = reader.GetInt32(reader.GetOrdinal("subskill"));
+                                double wound = reader.IsDBNull(reader.GetOrdinal("wound")) ? 0 : reader.GetDouble(reader.GetOrdinal("wound"));
+                                long manadamage = reader.IsDBNull(reader.GetOrdinal("manadamage")) ? 0 : reader.GetInt64(reader.GetOrdinal("manadamage"));
+
+                                resultList.Add(new
+                                {
+                                    id = id,
+                                    playerId = playerId,
+                                    playerName = playerName,
+                                    damage = dmg,
+                                    ut = ut,
+                                    enemyId = enemyId,
+                                    skill = skill,
+                                    subskill = subskill,
+                                    wound = wound,
+                                    manadamage = manadamage
+                                });
+                            }
+                        }
+                        return resultList;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception: " + ex.ToString());
+                return null;
+            }
+        }
+
         public static Damage_Simple Get_Biggest_BurstofDamage_InUT_BetweenTimes(int start_ut, int end_ut, int burst_timeframe)
         {
             return Get_ListOf_Distinct_Biggest_BurstofDamage_InUT_BetweenTimes(start_ut, end_ut, burst_timeframe, 1)[0];
