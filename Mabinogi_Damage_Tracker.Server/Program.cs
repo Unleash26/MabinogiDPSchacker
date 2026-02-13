@@ -102,7 +102,22 @@ var url = "http://localhost:5004";
 Task.Run(() =>
 {
     Thread.Sleep(1000);
-    try { Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true }); }
+    try 
+    { 
+        // OverlayApp.exe is expected to be alongside the Server executable (exePath), 
+        // regardless of whether we are using _internal for other assets.
+        var overlayPath = Path.Combine(exePath, "OverlayApp.exe");
+        if (File.Exists(overlayPath))
+        {
+            Console.WriteLine($"Launching OverlayApp: {overlayPath}");
+            Process.Start(new ProcessStartInfo { FileName = overlayPath, UseShellExecute = true });
+        }
+        else
+        {
+            Console.WriteLine("OverlayApp not found, launching browser...");
+            Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true }); 
+        }
+    }
     catch { }
 });
 
