@@ -9,12 +9,14 @@ namespace Mabinogi_Damage_tracker.Models
         public string Name { get; set; }
         public Int32 Start_ut { get; set;  }
         public Int32 End_ut { get; set;  }
+        public int PlayerCount { get; set; }
 
-        public Recording_Simple(Int16 id, string name, Int32 start_ut, Int32 end_ut) {
+        public Recording_Simple(Int16 id, string name, Int32 start_ut, Int32 end_ut, int playerCount) {
             Id = id;
             Name = name;
             Start_ut = start_ut;
             End_ut = end_ut;
+            PlayerCount = playerCount;
         }
 
     }

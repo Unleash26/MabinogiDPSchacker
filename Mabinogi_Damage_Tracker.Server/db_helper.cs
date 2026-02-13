@@ -146,7 +146,7 @@ namespace Mabinogi_Damage_tracker
                             query_results.Add(new 
                             { 
                                 id = id,
-                                playerId = playerId,
+                                playerId = playerId.ToString(),
                                 playerName = playerName
                             });
                         }
@@ -737,7 +737,7 @@ namespace Mabinogi_Damage_tracker
 
                             finalSeries.Add(new
                             {
-                                id = playerId,
+                                id = playerId.ToString(),
                                 label = playerName,
                                 data = dataArray
                             });
@@ -764,14 +764,23 @@ namespace Mabinogi_Damage_tracker
                 {
                     connection.Open();
                     SqliteCommand command = new SqliteCommand(@"
-                    SELECT * FROM recordings
+                    SELECT r.id, r.name, r.start_ut, r.end_ut, 
+                    (SELECT COUNT(DISTINCT playerid) FROM damages WHERE ut BETWEEN r.start_ut AND r.end_ut) as player_count
+                    FROM recordings r
+                    ORDER BY r.id DESC
                     ", connection);
                     using (SqliteDataReader reader = command.ExecuteReader())
                     {
                         if (reader.HasRows == false) { return null; }
                         while (reader.Read())
                         {
-                            query_results.Add(new Models.Recording_Simple(reader.GetInt16(0), reader.GetString(1), reader.GetInt32(2), reader.GetInt32(3)));
+                            query_results.Add(new Models.Recording_Simple(
+                                reader.GetInt16(0), 
+                                reader.GetString(1), 
+                                reader.GetInt32(2), 
+                                reader.GetInt32(3),
+                                reader.GetInt32(4) // player_count
+                            ));
                         }
                     }
                 }
@@ -823,7 +832,7 @@ namespace Mabinogi_Damage_tracker
                                 resultList.Add(new
                                 {
                                     id = id,
-                                    playerId = playerId,
+                                    playerId = playerId.ToString(),
                                     playerName = playerName,
                                     damage = dmg,
                                     ut = ut,
@@ -886,7 +895,7 @@ namespace Mabinogi_Damage_tracker
                                 resultList.Add(new
                                 {
                                     id = id,
-                                    playerId = playerId,
+                                    playerId = playerId.ToString(),
                                     playerName = playerName,
                                     damage = dmg,
                                     ut = ut,
@@ -1186,7 +1195,7 @@ namespace Mabinogi_Damage_tracker
                     {
                         result.Add(new
                         {
-                            playerId = kvp.Key,
+                            playerId = kvp.Key.ToString(),
                             playerName = playerNames[kvp.Key],
                             skills = kvp.Value
                         });
@@ -1267,7 +1276,7 @@ namespace Mabinogi_Damage_tracker
                     {
                         data.Add(new
                         {
-                            playerId = kvp.Key,
+                            playerId = kvp.Key.ToString(),
                             playerName = playerNames[kvp.Key],
                             skills = kvp.Value
                         });
