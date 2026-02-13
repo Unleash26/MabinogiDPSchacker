@@ -15,7 +15,7 @@
 
     <!-- WindowChrome handles resizing borders only (CaptionHeight=0) -->
     <shell:WindowChrome.WindowChrome>
-        <shell:WindowChrome CaptionHeight="0" GlassFrameThickness="1" CornerRadius="0" ResizeBorderThickness="4"/>
+        <shell:WindowChrome CaptionHeight="0" GlassFrameThickness="1" CornerRadius="0" ResizeBorderThickness="8"/>
     </shell:WindowChrome.WindowChrome>
 
     <Window.Resources>
@@ -56,30 +56,33 @@
         </Style>
     </Window.Resources>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="32"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <!-- Main Border for Visual Edge -->
+    <Border BorderThickness="1" BorderBrush="#333333" Background="#121212">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="32"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <!-- Custom Title Bar (Handles Dragging manually) -->
-        <Grid Grid.Row="0" Background="#1f1f1f" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
-                <TextBlock Text="Mabinogi Damage Tracker" 
-                           Foreground="#cccccc" 
-                           FontSize="12" 
-                           FontFamily="Segoe UI"
-                           VerticalAlignment="Center"/>
-            </StackPanel>
-            
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Style="{StaticResource CaptionButtonStyle}" Click="Minimize_Click" Content="─"/>
-                <Button Style="{StaticResource CaptionButtonStyle}" Click="Maximize_Click" Content="▢"/>
-                <Button Style="{StaticResource CloseButtonStyle}" Click="Close_Click" Content="✕"/>
-            </StackPanel>
+            <!-- Custom Title Bar (Handles Dragging manually) -->
+            <Grid Grid.Row="0" Background="#1f1f1f" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <TextBlock Text="Mabinogi Damage Tracker" 
+                               Foreground="#cccccc" 
+                               FontSize="12" 
+                               FontFamily="Segoe UI"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+                
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource CaptionButtonStyle}" Click="Minimize_Click" Content="─"/>
+                    <Button Style="{StaticResource CaptionButtonStyle}" Click="Maximize_Click" Content="▢"/>
+                    <Button Style="{StaticResource CloseButtonStyle}" Click="Close_Click" Content="✕"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- WebView2 with Margin to avoid covering resize grips -->
+            <wv2:WebView2 x:Name="webView" Grid.Row="1" DefaultBackgroundColor="#121212" Margin="1,0,1,1"/>
         </Grid>
-
-        <!-- WebView2 -->
-        <wv2:WebView2 x:Name="webView" Grid.Row="1" DefaultBackgroundColor="#121212"/>
-    </Grid>
+    </Border>
 </Window>
