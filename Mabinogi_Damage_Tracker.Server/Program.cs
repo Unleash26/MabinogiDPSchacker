@@ -110,7 +110,17 @@ Task.Run(() =>
         if (File.Exists(overlayPath))
         {
             Console.WriteLine($"Launching OverlayApp: {overlayPath}");
-            Process.Start(new ProcessStartInfo { FileName = overlayPath, UseShellExecute = true });
+            try
+            {
+                // UseShellExecute=false launches process directly (CreateProcess) instead of via ShellExecute
+                // This avoids some UAC/SmartScreen prompts that return "Canceled by user" if not handled properly interactively
+                Process.Start(new ProcessStartInfo { FileName = overlayPath, UseShellExecute = false });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Failed to launch OverlayApp: {ex.Message}");
+                Console.WriteLine("Please ensure WebView2 Runtime is installed.");
+            }
         }
         else
         {
@@ -118,7 +128,10 @@ Task.Run(() =>
             Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true }); 
         }
     }
-    catch { }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[ERROR] Unexpected error in launcher: {ex.Message}");
+    }
 });
 
 app.Run(url);

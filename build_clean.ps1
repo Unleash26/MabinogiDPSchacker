@@ -108,6 +108,12 @@ foreach ($item in $overlayItems) {
 # 3. Copy Client Build -> _internal/client
 Copy-Item "$clientDir\build\*" -Destination $clientDest -Recurse -Force
 
+# 4. Copy Troubleshooting Guide
+if (Test-Path "$rootDir\TROUBLESHOOTING.txt") {
+    Copy-Item "$rootDir\TROUBLESHOOTING.txt" -Destination $publishDir -Force
+}
+
 Write-Host ">>> Build Complete! Artifacts are in: $publishDir" -ForegroundColor Green
 Write-Host ">>> Executable: Mabinogi_Damage_Tracker.Server.exe (Root)" -ForegroundColor Green
 Write-Host ">>> Executable: OverlayApp.exe (Root)" -ForegroundColor Green
+Write-Host ">>> Please include TROUBLESHOOTING.txt in the distribution zip." -ForegroundColor Yellow

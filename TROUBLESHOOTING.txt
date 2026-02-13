@@ -1,0 +1,27 @@
+Mabinogi Damage Tracker - トラブルシューティング
+
+もしアプリケーションが起動しない（黒い画面が出ない、コマンドプロンプトが出た後すぐに終了する、または「ユーザーによって取り消されました」というエラーが出る）場合は、以下の手順を確認してください。
+
+0. ZIPファイルのブロック解除（最重要！）
+「The operation was canceled by the user」エラーが出る場合、これはWindowsのセキュリティ機能によるブロックです。
+ダウンロードしたZIPファイルを右クリックし、「プロパティ」を開き、下部にある「セキュリティ: このファイルは他のコンピューターから取得したものです...」の横にある **「許可する」または「ブロックを解除」** にチェックを入れてから、再度解凍してください。
+
+1. WebView2 ランタイムのインストール
+このアプリケーションは画面表示に「Microsoft Edge WebView2」を使用しています。
+Windows 10/11の最新版には含まれていますが、環境によってはインストールが必要です。
+
+以下のリンクから「Evergreen Bootstrapper」をダウンロードしてインストールしてください：
+https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section
+
+2. Visual C++ 再頒布可能パッケージのインストール
+WebView2の動作には「Visual C++ Redistributable」が必要です。
+以下のリンクから「x64」版をダウンロードしてインストールしてください：
+https://learn.microsoft.com/ja-jp/cpp/windows/latest-supported-vc-redist?view=msvc-170
+
+3. ウイルス対策ソフトの確認
+個人開発の署名なしアプリケーションのため、ウイルス対策ソフトによってブロックされることがあります。
+「Mabinogi_Damage_Tracker.Server.exe」および「OverlayApp.exe」を例外設定に追加してください。
+
+4. 直接起動してみる
+「OverlayApp.exe」を直接ダブルクリックして実行してみてください。
+エラーメッセージが表示される場合は、その内容を開発者に報告してください。
