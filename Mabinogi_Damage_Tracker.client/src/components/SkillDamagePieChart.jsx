@@ -98,7 +98,14 @@ export default function SkillDamagePieChart({ data, selectedPlayer, onPlayerChan
     }, []);
 
     const translateSkillName = (skillName) => {
-        return translations[skillName] || skillName;
+        if (!skillName) return "Unknown";
+        // 1. Try direct match
+        if (translations[skillName]) return translations[skillName];
+        // 2. Try matching with Unknown_Skill_ prefix (for numeric IDs)
+        const unknownSkillKey = `Unknown_Skill_${skillName}`;
+        if (translations[unknownSkillKey]) return translations[unknownSkillKey];
+        // 3. Fallback
+        return skillName;
     };
 
     const totalDamage = data ? data.reduce((prev, curr) => prev + curr.damage, 0) : 0;

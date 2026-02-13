@@ -44,7 +44,7 @@ var app = builder.Build();
 
 
 // --- 1. 時限判定 ---
-var expireDate = new DateTime(2027, 2, 14, 0, 0, 0);
+var expireDate = new DateTime(2026, 3, 30, 0, 0, 0);
 if (DateTime.Now > expireDate)
 {
     Console.WriteLine("期限切れです。");

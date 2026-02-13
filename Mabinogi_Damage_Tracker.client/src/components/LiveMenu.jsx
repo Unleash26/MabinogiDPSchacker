@@ -187,52 +187,26 @@ export default function LiveMenu() {
                 });
 
 
-                // (D) Skill Damage Aggregation
-                setSkillDamageByPlayer(prev => {
-                    const updated = { ...prev };
-                    filteredData.forEach(item => {
-                        const { playerId, damage, skill, subskill, playerName } = item; // skill, subskill are IDs here? 
-                        // Wait, raw data returns skill ID (int). We need skill Names?
-                        // The server's `Get_RawDamages_...` returns `skill` (int). 
-                        // We need a way to map Skill ID to Name client-side OR server needs to join skill names.
-                        // Currently server joins `players` but not skill names in raw query.
-                        // `GetDamageBySkill...` endpoint uses `skill_ids` class to map.
-                        // For now, let's use the ID or try to fetch skill map? 
-                        // Actually, client's `SkillDamagePieChart` handles ID-to-Name if provided with IDs?
-                        // No, `SkillDamagePieChart` uses `skill_names_ja.json` mapping.
-                        // So we should just use the ID here, and let the chart component map it.
-                        // But `SkillDamagePieChart` expects `skillName` property. Let's use ID as name for now, 
-                        // and ensure `SkillDamagePieChart` can handle it.
-                        // Wait, `SkillDamagePieChart.jsx` does `const name = translations[item.skillName] || item.skillName`.
-                        // So if we pass ID as string, it will look up in translations.
+                // (D) Skill Damage Aggregation - Server API Call (Matches AnalyticsMenu logic)
+                const endUT = Math.floor(Date.now() / 1000);
 
-                        const skillName = String(skill); // ID as string
+                // Fetch Total Skill Damage
+                fetch(`http://${window.location.hostname}:5004/Home/GetTotalDamageBySkill?start_ut=${startUT}&end_ut=${endUT}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data) setSkillDamageData(data);
+                    })
+                    .catch(error => console.error('Skill damage error:', error));
 
-                        if (!updated[playerId]) {
-                            updated[playerId] = { playerName, skills: {} };
+                // Fetch grouped skill damage
+                fetch(`http://${window.location.hostname}:5004/Home/GetDamageBySkillGroupedByPlayers?start_ut=${startUT}&end_ut=${endUT}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data) {
+                            setSkillDamageByPlayer(data);
                         }
-                        // Update player name if missing
-                        if (!updated[playerId].playerName && playerName) updated[playerId].playerName = playerName;
-
-                        updated[playerId].skills[skillName] = (updated[playerId].skills[skillName] || 0) + damage;
-                    });
-                    return updated;
-                });
-
-                // Update total skill damage (for sorting/ranking)
-                setSkillDamageData(prev => {
-                    // Re-calculate from `setSkillDamageByPlayer` state is cleaner but async state issue using `filteredData` directly
-                    // Merge `prev` and `filteredData`
-                    const skillMap = new Map(prev.map(s => [s.skillName, s.damage]));
-                    filteredData.forEach(item => {
-                        const skillName = String(item.skill);
-                        skillMap.set(skillName, (skillMap.get(skillName) || 0) + item.damage);
-                    });
-
-                    return Array.from(skillMap.entries())
-                        .map(([skillName, damage]) => ({ skillName, damage }))
-                        .sort((a, b) => b.damage - a.damage);
-                });
+                    })
+                    .catch(error => console.error('Grouped Skill damage error:', error));
 
             })
             .catch(error => console.error('Error:', error));
@@ -310,20 +284,38 @@ export default function LiveMenu() {
     // 選択されたプレイヤーに応じてスキルデータをフィルタ
     const filteredSkillData = (() => {
         if (selectedPlayer === '__all__') {
-            return skillDamageData;
+            return skillDamageData; // GetTotalDamageBySkill result (array)
         }
-        const playerData = skillDamageByPlayer[selectedPlayer];
-        if (!playerData) return [];
+
+        // skillDamageByPlayer is now an array from GetDamageBySkillGroupedByPlayers
+        const playerData = Array.isArray(skillDamageByPlayer)
+            ? skillDamageByPlayer.find(p => p.playerId == selectedPlayer)
+            : skillDamageByPlayer[selectedPlayer]; // Fallback if data structure mismatch (should be array now)
+
+        if (!playerData || !playerData.skills) return [];
+
+        // AnalyticsMenu passes playerData.skills directly.
+        // If it's an object (key-value), convert to array. If array, return as is.
+        if (Array.isArray(playerData.skills)) {
+            return playerData.skills;
+        }
+
+        // Object case (fallback or old structure support)
         return Object.entries(playerData.skills)
             .map(([skillName, damage]) => ({ skillName, damage }))
             .sort((a, b) => b.damage - a.damage);
     })();
 
     // プルダウン用のプレイヤーリスト
-    const playerList = Object.entries(skillDamageByPlayer).map(([id, data]) => ({
-        id,
-        name: playerNames[id] || data.playerName || `Player ${id}`,
-    }));
+    const playerList = Array.isArray(skillDamageByPlayer)
+        ? skillDamageByPlayer.map(p => ({
+            id: p.playerId,
+            name: playerNames[p.playerId] || p.playerName || `Player ${p.playerId}`
+        }))
+        : Object.entries(skillDamageByPlayer).map(([id, data]) => ({
+            id,
+            name: playerNames[id] || data.playerName || `Player ${id}`,
+        }));
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: '100%' }}>
