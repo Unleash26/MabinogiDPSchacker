@@ -31,11 +31,11 @@ export default function SideMenu() {
           backgroundColor: '#0c0c0c', // 背景色統一
         },
       }}
-      >
+    >
       {/* ★削除しました★
          画像を囲っていた Box と Divider を消去
       */}
-      
+
       <Box
         sx={{
           overflow: 'auto',

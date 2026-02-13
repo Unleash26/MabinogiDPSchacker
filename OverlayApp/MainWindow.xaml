@@ -11,6 +11,7 @@
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         Background="#121212"
+        AllowsTransparency="False"
         ResizeMode="CanResize">
 
     <!-- WindowChrome handles resizing borders only (CaptionHeight=0) -->
@@ -75,6 +76,7 @@
                 </StackPanel>
                 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource CaptionButtonStyle}" Click="CompactMode_Click" Content="◲" ToolTip="Compact Mode"/>
                     <Button Style="{StaticResource CaptionButtonStyle}" Click="Minimize_Click" Content="─"/>
                     <Button Style="{StaticResource CaptionButtonStyle}" Click="Maximize_Click" Content="▢"/>
                     <Button Style="{StaticResource CloseButtonStyle}" Click="Close_Click" Content="✕"/>

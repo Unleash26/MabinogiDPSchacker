@@ -12,26 +12,26 @@ export default function AppTheme(props) {
     const tokens = getDesignTokens(mode);
 
     return createTheme({
-  palette: {
-  mode: 'dark',
-  background: {
-    default: '#0a0a0a',
-    paper: '#1e1e1e',
-  },
-  text: {
-    primary: '#e0e0e0',
-    secondary: '#b0b0b0',
-    disabled: '#777',
-  },
-  primary: {
-    main: '#90caf9',
-    contrastText: '#000',
-  },
-},
-  typography: tokens.typography,
-  shadows: tokens.shadows,
-  shape: tokens.shape,
-  components: {
+      palette: {
+        mode: 'dark',
+        background: {
+          default: '#0a0a0a',
+          paper: '#1e1e1e',
+        },
+        text: {
+          primary: '#e0e0e0',
+          secondary: '#b0b0b0',
+          disabled: '#777',
+        },
+        primary: {
+          main: '#90caf9',
+          contrastText: '#000',
+        },
+      },
+      typography: tokens.typography,
+      shadows: tokens.shadows,
+      shape: tokens.shape,
+      components: {
         ...dataDisplayCustomizations,
         ...surfacesCustomizations,
         ...themeComponents,

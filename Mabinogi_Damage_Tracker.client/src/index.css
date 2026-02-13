@@ -5,7 +5,8 @@
 /* ★以下を追加！これはTailwindのチェックを受けないので絶対に消されません★ */
 
 /* 全体の背景を強制的に黒にする */
-body, #root {
+body,
+#root {
   background-color: #1a1a1a !important;
   color: #ffffff !important;
   min-height: 100vh;
