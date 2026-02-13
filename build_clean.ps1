@@ -52,7 +52,7 @@ finally {
 Write-Host ">>> OVERLAY: Building WPF App..." -ForegroundColor Cyan
 Push-Location $overlayDir
 try {
-    dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o "publish_final"
+    dotnet publish "OverlayApp.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o "publish_final"
 }
 finally {
     Pop-Location
@@ -62,7 +62,7 @@ finally {
 Write-Host ">>> SERVER: Building API Server..." -ForegroundColor Cyan
 Push-Location $serverDir
 try {
-    dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o "publish"
+    dotnet publish "Mabinogi_Damage_Tracker.Server.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o "publish"
 }
 finally {
     Pop-Location
