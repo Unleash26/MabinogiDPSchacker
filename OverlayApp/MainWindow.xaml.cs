@@ -60,12 +60,39 @@ namespace OverlayApp
                     if (config != null)
                     {
                         // Validate coordinates
-                        if (config.Width > 0 && config.Height > 0)
+                        bool isOnScreen = false;
+                        
+                        // Check against Virtual Screen
+                        if (config.Left >= SystemParameters.VirtualScreenLeft &&
+                            config.Top >= SystemParameters.VirtualScreenTop &&
+                            config.Left + config.Width <= SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth &&
+                            config.Top + config.Height <= SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight) 
+                        {
+                            isOnScreen = true;
+                        }
+                        // More lenient check: Is at least top-left corner visible?
+                        else if (config.Left < SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth &&
+                                 config.Left + config.Width > SystemParameters.VirtualScreenLeft &&
+                                 config.Top < SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight &&
+                                 config.Top + config.Height > SystemParameters.VirtualScreenTop)
+                        {
+                             isOnScreen = true;
+                        }
+
+                        if (config.Width > 0 && config.Height > 0 && isOnScreen)
                         {
                             this.Left = config.Left;
                             this.Top = config.Top;
-                            this.Width = Math.Max(400, config.Width);
-                            this.Height = Math.Max(300, config.Height);
+                            this.Width = Math.Max(300, config.Width);
+                            this.Height = Math.Max(120, config.Height);
+                        }
+                        else
+                        {
+                            // Reset to default (Center Screen) if off-screen or invalid
+                            this.Width = 800;
+                            this.Height = 500;
+                            this.Left = (SystemParameters.PrimaryScreenWidth - this.Width) / 2;
+                            this.Top = (SystemParameters.PrimaryScreenHeight - this.Height) / 2;
                         }
                     }
                 }

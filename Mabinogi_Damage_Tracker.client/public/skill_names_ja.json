@@ -83,6 +83,7 @@
         "===== 神聖スキル===": "",
         "JudgmentBlade": "ジャッジメントブレイド",
         "===== エレナイスキル =====": "",
+        "Unknown_Skill_59028": "ラインブレイク",
         "DauntlessDefense": "アドバンスドディフェンス",
         "BlazingAssaultSlash": "ファイアリーフアタック",
         "ShatteringWindmill": "アイスウィンドミル",
@@ -144,7 +145,8 @@
         "Veil": "ベール",
         "GuardianImpulse": "ガーディアンインパルス",
         "DynamisRush": "デュナミスラッシュ",
-        "SteadfastBlessing": "ステッドファストブレッシング"
+        "SteadfastBlessing": "ステッドファストブレッシング",
+        "OnehandedSpiritSwordAwakening": "片手剣精霊"
     },
     "_comment": "このファイルを編集して日本語翻訳を追加してください。キー（例: MagnumShot）は変更しないでください。値に日本語名を入力してください。"
 }

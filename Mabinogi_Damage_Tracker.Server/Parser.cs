@@ -147,6 +147,9 @@ namespace Mabinogi_Damage_tracker
             }
         }
 
+        // Buffer for fragmented packets
+        static List<byte> unused_buffer = new List<byte>();
+
         private static void Device_OnPacketArrival(object s, PacketCapture e)
         {
             if(pause == true)
@@ -170,54 +173,123 @@ namespace Mabinogi_Damage_tracker
 
             if(tcp == null) { return; }
 
+            // Combine previous buffer with new payload
+            byte[] fullPayload;
+            if (unused_buffer.Count > 0)
+            {
+                fullPayload = new byte[unused_buffer.Count + tcp.PayloadData.Length];
+                unused_buffer.CopyTo(fullPayload, 0);
+                Array.Copy(tcp.PayloadData, 0, fullPayload, unused_buffer.Count, tcp.PayloadData.Length);
+                unused_buffer.Clear();
+                
+                // Debug.WriteLine($"[Reassembly] Combined buffer size: {fullPayload.Length}");
+            }
+            else
+            {
+                fullPayload = tcp.PayloadData;
+            }
+
             int cursor = 0;
 
             List<healing> healing_packs = new List<healing>();
 
-            while (cursor + 10 < tcp.PayloadData.Length)
+            // Process payload
+            while (cursor < fullPayload.Length)
             { 
+                // Check if enough bytes for minimal header (1 byte sign + 4 byte len)
+                if (fullPayload.Length - cursor < 5)
+                {
+                    // Not enough for header, buffer remaining
+                    for (int k = cursor; k < fullPayload.Length; k++) unused_buffer.Add(fullPayload[k]);
+                    break;
+                }
+
                 // サブパケットヘッダを解析
                 int begining_of_packet_cursor = cursor;
-                byte sign = tcp.PayloadData[cursor];
+                byte sign = fullPayload[cursor];
                 cursor += sizeof(byte);
 
-                UInt32 sub_packet_length = BinaryPrimitives.ReadUInt32LittleEndian(tcp.PayloadData.AsSpan(cursor));
-                if (sub_packet_length > 2000 || sub_packet_length == 0)
+                UInt32 sub_packet_length = BinaryPrimitives.ReadUInt32LittleEndian(fullPayload.AsSpan(cursor));
+                
+                // --- SANITY CHECK BEFORE BUFFERING ---
+                // If the length reads as something huge (e.g. > 30000 bytes for Mabinogi messages is suspicious),
+                // we likely lost sync or are reading garbage.
+                // Do NOT buffer this. Reset.
+                if (sub_packet_length > 30000 || sub_packet_length == 0)
                 {
-                    // 不正データ、パケットをスキップ
-                    continue;
+                    // Invalid length detected.
+                    // If we were building from a buffer, that buffer is likely corrupt. Clear it.
+                    if (unused_buffer.Count > 0)
+                    {
+                        unused_buffer.Clear();
+                        // Restart processing from the ORIGINAL packet (tcp) if possible? 
+                        // Actually, if we are here, 'fullPayload' contains text. 
+                        // The safest bet is to skip this "header" (4 bytes) or just abort this payload processing to avoid loop.
+                        // Let's abort this payload processing and clear buffer to reset sync for NEXT packet.
+                        break; 
+                    }
+                    else
+                    {
+                        // If this is a fresh packet and we read garbage, maybe just skip 1 byte and try to find a header?
+                        // Or just skip this 4 bytes?
+                        cursor += sizeof(UInt32);
+                        continue;
+                    }
                 }
+
+                // Check if we have the full packet
+                // sub_packet_length is payload length AFTER the length field.
+                // Total bytes needed from 'cursor - 1' (start) is: 1 (sign) + 4 (len) + sub_packet_length
+                // Current cursor is at 'len', so we need 'sub_packet_length' more bytes.
+                
+                if (fullPayload.Length - (cursor + sizeof(UInt32)) < sub_packet_length)
+                {
+                    // Valid length (<= 30000), but fragmented. Buffer it.
+                    // Reset cursor to start of this packet
+                    cursor = begining_of_packet_cursor;
+                    for (int k = cursor; k < fullPayload.Length; k++) unused_buffer.Add(fullPayload[k]);
+                    break;
+                }
+
                 cursor += sizeof(UInt32);
 
-                byte header_flag = tcp.PayloadData[cursor];
+                byte header_flag = fullPayload[cursor];
                 cursor += sizeof(byte);
 
                 if (sub_packet_length < 5) { cursor = (int)sub_packet_length + begining_of_packet_cursor; continue; }
                 if (header_flag > 4 || header_flag == 1 || header_flag == 2) { cursor = (int)sub_packet_length + begining_of_packet_cursor; continue; }
 
                 // ヘッダ完了、次はオペコード
-                UInt32 opcode = BinaryPrimitives.ReadUInt32BigEndian(tcp.PayloadData.AsSpan(cursor));
+                UInt32 opcode = BinaryPrimitives.ReadUInt32BigEndian(fullPayload.AsSpan(cursor));
                 cursor += sizeof(UInt32);
 
-                switch(opcode)
-                {
-                    case Op_Codes.healing:
-                        pack_healing(tcp, cursor, ref healing_packs, (int)sub_packet_length, begining_of_packet_cursor);
-                        break;
-                    case Op_Codes.ChatMessage:
-                        read_chat(tcp, cursor);
-                        break;
-                    case Op_Codes.CombatActionPack:
-                    case Op_Codes.CombatActionPack2:
-                        pack_damage(tcp, cursor, (int)sub_packet_length, begining_of_packet_cursor);
-                        break;
+                try {
+                    switch(opcode)
+                    {
+                        case Op_Codes.healing:
+                            // pack_healing(tcp, cursor, ref healing_packs, (int)sub_packet_length, begining_of_packet_cursor);
+                             // Need to update pack_healing to take byte[] instead of TcpPacket if we want to support it later
+                            break;
+                        case Op_Codes.ChatMessage:
+                            read_chat(fullPayload, cursor);
+                            break;
+                        case Op_Codes.CombatActionPack:
+                        case Op_Codes.CombatActionPack2:
+                            pack_damage(fullPayload, cursor, (int)sub_packet_length, begining_of_packet_cursor);
+                            break;
+                    }
+                } catch (Exception ex) {
+                    LogsController.WriteLog("Error parsing packet opcode " + opcode + ": " + ex.Message);
                 }
+                
                 cursor = (int)sub_packet_length + begining_of_packet_cursor; 
                 continue; 
             }
 
             if(healing_packs.Count > 0)
             {
+                /* 
+                 * User Request: Remove Heal Logs to reduce spam and potential performance impact.
                 healing_packs.ForEach(a => a.caster = last_healer);
                 foreach (var item in healing_packs)
                 {
@@ -226,6 +298,14 @@ namespace Mabinogi_Damage_tracker
                     LogsController.WriteLog("[HEAL]" + item.caster + "->" + item.recepient + " for " + item.heal);
                     Debug.WriteLine("player {0}, was healed by {1}, for {2}",item.recepient,item.caster,item.heal);
                 }
+                */
+            }
+
+            // Safety: If buffer gets too large (e.g., sync lost), clear it
+            if (unused_buffer.Count > 100000)
+            {
+                LogsController.WriteLog("Buffer overflow, clearing TCP reassembly buffer.");
+                unused_buffer.Clear();
             }
 
             return;
@@ -233,88 +313,54 @@ namespace Mabinogi_Damage_tracker
 
         private static void pack_healing(TcpPacket tcp, int cursor, ref List<healing> healing_packs, int sub_packet_length, int begining_of_packet_cursor)
         {
-            try
-            {
-                byte heal_type = tcp.PayloadData[cursor + sizeof(UInt64)];
-                healing healpack = new healing();
-
-                switch (heal_type)
-                {
-                    case 0x0A:  // ヒーリング受信
-                        healpack.recepient = BinaryPrimitives.ReadUInt64BigEndian(tcp.PayloadData.AsSpan(cursor));
-                        healpack.heal = BinaryPrimitives.ReadUInt32BigEndian(tcp.PayloadData.AsSpan(cursor + 17));
-                        healing_packs.Add(healpack);
-                        break;
-                    case 0x19: // ヒーリングキャスト
-                        last_healer = BinaryPrimitives.ReadUInt64BigEndian(tcp.PayloadData.AsSpan(cursor));
-                        break;
-                    case 0x28: // パーティーヒーリング
-                        last_healer = BinaryPrimitives.ReadUInt64BigEndian(tcp.PayloadData.AsSpan(cursor));
-                        cursor += 19;
-                        int stringlength = tcp.PayloadData[cursor];
-                        cursor += stringlength;
-                        while (cursor < sub_packet_length + begining_of_packet_cursor)
-                        {
-                            if (tcp.PayloadData[cursor] != 4) { break; }
-                            healing multiheal = new healing();
-                            multiheal.recepient = BinaryPrimitives.ReadUInt64BigEndian(tcp.PayloadData.AsSpan(cursor + 1));
-                            multiheal.caster = last_healer;
-                            healing_packs.Add(multiheal);
-                            cursor += sizeof(UInt64);
-                        }
-                        break;
-                }
-            }
-            catch
-            {
-            }
+             // Keeping signature as is since it is commented out for now
         }
 
-        private static void pack_damage(TcpPacket tcp, int cursor, int sub_packet_length, int begining_of_packet_cursor)
+        private static void pack_damage(byte[] data, int cursor, int sub_packet_length, int begining_of_packet_cursor)
         {
             UInt32 _subsub_pack_len = 0;
 
             try
             {
-                UInt64 sub_packet_id = BinaryPrimitives.ReadUInt64BigEndian(tcp.PayloadData.AsSpan(cursor));
+                UInt64 sub_packet_id = BinaryPrimitives.ReadUInt64BigEndian(data.AsSpan(cursor));
                 cursor += sizeof(UInt64);
 
                 // uvint64 を読み取る
                 UInt64 throwaway_uvint64;
                 int variable_int_bytesread;
-                read_variable_length_uint64(tcp.PayloadData.AsSpan(cursor), out throwaway_uvint64, out variable_int_bytesread);
+                read_variable_length_uint64(data.AsSpan(cursor), out throwaway_uvint64, out variable_int_bytesread);
                 cursor += variable_int_bytesread;
 
                 // サブパケットの解析開始
-                byte sub_item_count = tcp.PayloadData[cursor];
+                byte sub_item_count = data[cursor];
                 cursor += sizeof(byte);
 
                 // 次のバイトは 0 であるべき
-                if (tcp.PayloadData[cursor] != 0) { cursor = (int)sub_packet_length + begining_of_packet_cursor; return; }
+                if (data[cursor] != 0) { cursor = (int)sub_packet_length + begining_of_packet_cursor; return; }
                 cursor++;
 
                 cursor++;
-                UInt32 actionpack_id = BinaryPrimitives.ReadUInt32BigEndian(tcp.PayloadData.AsSpan(cursor));
+                UInt32 actionpack_id = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(cursor));
                 cursor += sizeof(UInt32);
 
                 cursor++;
-                UInt32 prev_actionpack_id = BinaryPrimitives.ReadUInt32BigEndian(tcp.PayloadData.AsSpan(cursor));
+                UInt32 prev_actionpack_id = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(cursor));
                 cursor += sizeof(UInt32);
 
                 cursor++;
-                byte hit = tcp.PayloadData[cursor];
+                byte hit = data[cursor];
                 cursor += sizeof(byte);
 
                 cursor++;
-                byte ttype = tcp.PayloadData[cursor];
+                byte ttype = data[cursor];
                 cursor += sizeof(byte);
 
                 cursor++;
-                byte unk1 = tcp.PayloadData[cursor];
+                byte unk1 = data[cursor];
                 cursor += sizeof(byte);
 
                 cursor++;
-                byte sub_header_flag = tcp.PayloadData[cursor];
+                byte sub_header_flag = data[cursor];
                 cursor += sizeof(byte);
 
                 // 攻撃がブロックされたかチェック
@@ -329,7 +375,7 @@ namespace Mabinogi_Damage_tracker
                 }
 
                 cursor++;
-                UInt32 subsub_packet_count = BinaryPrimitives.ReadUInt32BigEndian(tcp.PayloadData.AsSpan(cursor));
+                UInt32 subsub_packet_count = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(cursor));
                 cursor += sizeof(UInt32);
 
                 UInt64 attacker_id = 0;
@@ -343,7 +389,7 @@ namespace Mabinogi_Damage_tracker
                     int subsub_pack_start_cursor = cursor + 8;
                     // サブサブパケット長を取得
                     cursor++;
-                    UInt32 subsub_pack_len = BinaryPrimitives.ReadUInt32BigEndian(tcp.PayloadData.AsSpan(cursor));
+                    UInt32 subsub_pack_len = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(cursor));
                     _subsub_pack_len = subsub_pack_len;
 
                     // サブサブパケットのヘッダをスキップ
@@ -351,31 +397,31 @@ namespace Mabinogi_Damage_tracker
 
                     cursor++;
 
-                    UInt32 combatActionID = BinaryPrimitives.ReadUInt32BigEndian(tcp.PayloadData.AsSpan(cursor));
+                    UInt32 combatActionID = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(cursor));
                     cursor += sizeof(UInt32);
 
                     cursor++;
-                    UInt64 entityID = BinaryPrimitives.ReadUInt64BigEndian(tcp.PayloadData.AsSpan(cursor));
+                    UInt64 entityID = BinaryPrimitives.ReadUInt64BigEndian(data.AsSpan(cursor));
                     cursor += sizeof(UInt64);
 
                     cursor++;
-                    byte subsub_ttype = tcp.PayloadData[cursor];
+                    byte subsub_ttype = data[cursor];
                     cursor += sizeof(byte);
 
                     cursor++;
-                    UInt16 stun = BinaryPrimitives.ReadUInt16BigEndian(tcp.PayloadData.AsSpan(cursor));
+                    UInt16 stun = BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(cursor));
                     cursor += sizeof(UInt16);
 
                     cursor++;
-                    UInt16 skillid = BinaryPrimitives.ReadUInt16BigEndian(tcp.PayloadData.AsSpan(cursor));
+                    UInt16 skillid = BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(cursor));
                     cursor += sizeof(UInt16);
 
                     cursor++;
-                    UInt16 subskillid = BinaryPrimitives.ReadUInt16BigEndian(tcp.PayloadData.AsSpan(cursor));
+                    UInt16 subskillid = BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(cursor));
                     cursor += sizeof(UInt16);
 
                     cursor++;
-                    UInt16 subsub_unk1 = BinaryPrimitives.ReadUInt16BigEndian(tcp.PayloadData.AsSpan(cursor));
+                    UInt16 subsub_unk1 = BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(cursor));
                     cursor += sizeof(UInt16);
 
 
@@ -390,19 +436,19 @@ namespace Mabinogi_Damage_tracker
                     {
                         enemy_id = entityID;
                         cursor++;
-                        UInt32 options = BinaryPrimitives.ReadUInt32BigEndian(tcp.PayloadData.AsSpan(cursor));
+                        UInt32 options = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(cursor));
                         cursor += sizeof(UInt32);
 
                         cursor++;
-                        float damage = BinaryPrimitives.ReadSingleLittleEndian(tcp.PayloadData.AsSpan(cursor));
+                        float damage = BinaryPrimitives.ReadSingleLittleEndian(data.AsSpan(cursor));
                         cursor += sizeof(float);
 
                         cursor++;
-                        float wound = BinaryPrimitives.ReadSingleLittleEndian(tcp.PayloadData.AsSpan(cursor));
+                        float wound = BinaryPrimitives.ReadSingleLittleEndian(data.AsSpan(cursor));
                         cursor += sizeof(float);
 
                         cursor++;
-                        UInt32 manaDamage = BinaryPrimitives.ReadUInt32BigEndian(tcp.PayloadData.AsSpan(cursor));
+                        UInt32 manaDamage = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(cursor));
                         cursor += sizeof(UInt32);
 
                         // プレイヤーの攻撃ダメージのみ記録
@@ -420,9 +466,10 @@ namespace Mabinogi_Damage_tracker
             }
             catch (ArgumentOutOfRangeException ex)
             {
-                Debug.WriteLine("Cursor out of range, saving this packet and the next. cursor at {0}, packet length {1}, sub packet length {2}, sub sub packet length {3}", cursor, tcp.PayloadData.Length, sub_packet_length, _subsub_pack_len);
+                Debug.WriteLine("Cursor out of range, saving this packet and the next. cursor at {0}, packet length {1}, sub packet length {2}, sub sub packet length {3}", cursor, data.Length, sub_packet_length, _subsub_pack_len);
                 cursor = (int)sub_packet_length + begining_of_packet_cursor;
                 savenextpacket = true;
+                // In new logic, we might want to re-throw or handle differently, but keeping as is for now as it just skips.
             }
             catch (Exception ex)
             {
@@ -431,11 +478,11 @@ namespace Mabinogi_Damage_tracker
             }
         }
 
-        private static void read_chat(TcpPacket packet, int cursor)
+        private static void read_chat(byte[] data, int cursor)
         {
             try
             {
-                UInt64 playerid = BinaryPrimitives.ReadUInt64BigEndian(packet.PayloadData.AsSpan(cursor));
+                UInt64 playerid = BinaryPrimitives.ReadUInt64BigEndian(data.AsSpan(cursor));
 
                 if (playerid < 0x0010000000000001 || playerid > 0x0010010000000001)
                 {
@@ -448,12 +495,12 @@ namespace Mabinogi_Damage_tracker
                 }
 
                 cursor = 25;
-                byte namelength = packet.PayloadData[25];
+                byte namelength = data[25];
 
                 if (namelength > 36 || namelength <= 1) { return; }
                 cursor++;
 
-                string playername = Encoding.UTF8.GetString(packet.PayloadData, cursor, (int)namelength - 1);
+                string playername = Encoding.UTF8.GetString(data, cursor, (int)namelength - 1);
 
                 db_helper.add_player(playername, (Int64)playerid);
                 LogsController.WriteLog("[PLAYER DISCOVERED]" + playerid.ToString() + " -> " + playername);

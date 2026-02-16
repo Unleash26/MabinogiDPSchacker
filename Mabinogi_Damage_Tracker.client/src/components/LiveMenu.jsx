@@ -69,6 +69,8 @@ export default function LiveMenu() {
     // キャラクター選択用
     const [selectedPlayer, setSelectedPlayer] = useState('__all__');
 
+    const lastProcessedUtRef = useRef(null);
+
     async function GetNewDamageData(lastId) {
         // ★生データを取得してクライアント側で集計する方式に変更
         await fetch(`http://${window.location.hostname}:5004/Home/GetRawDamagesAfterId?lastFetchedId=${lastId}`)
@@ -112,82 +114,102 @@ export default function LiveMenu() {
 
                 // (C) Damage Over Time (DoT) Aggregation
                 // ここは少し複雑。既存のデータ構造に合わせて時系列データを追加していく。
-                // 簡易化のため、受け取ったデータの `ut` (Unix Time) を使ってバケット分けする。
+
+                // バケット集計
+                const userTimeBuckets = {}; // { playerId: { ut: damage, ... } }
+                filteredData.forEach(item => {
+                    const { playerId, damage, ut } = item;
+                    if (!userTimeBuckets[playerId]) userTimeBuckets[playerId] = {};
+                    userTimeBuckets[playerId][ut] = (userTimeBuckets[playerId][ut] || 0) + damage;
+                });
+
+                // 今回のバッチに含まれるユニークな時刻リスト (昇順)
+                const uniqueUts = sortedUniqueUt(filteredData);
 
                 setDamageOverTimeData(prev => {
                     const prevMap = new Map(prev.map(p => [p.id, { ...p }]));
 
-                    // 新しいデータをユーザーごと・時間ごとに整理
-                    const userTimeBuckets = {}; // { playerId: { ut: damage, ... } }
-                    let minUt = Infinity;
-                    let maxUt = -Infinity;
-
-                    filteredData.forEach(item => {
-                        const { playerId, damage, ut } = item;
-                        if (!userTimeBuckets[playerId]) userTimeBuckets[playerId] = {};
-                        userTimeBuckets[playerId][ut] = (userTimeBuckets[playerId][ut] || 0) + damage;
-
-                        if (ut < minUt) minUt = ut;
-                        if (ut > maxUt) maxUt = ut;
-                    });
-
-                    // 既存のデータの最後のUTを取得 (なければ startUT)
-                    // Note: prev data is simple array of cumulative damage. We assume polling happens sequentially.
-                    // This logic is tricky without keeping track of time map. 
-                    // 既存ロジックは単純に配列に追記しているので、データが来た順に追記する形にする。
-                    // 正確な秒単位同期は難しいが、Live Viewとしては「新しく来たデータ」をプロットすれば十分。
-
-                    // 1. 各ユーザーの現在の合計ダメージを取得
+                    // 1. 各ユーザーの現在の合計ダメージを取得 (ベースライン)
                     const currentTotals = new Map();
                     prevMap.forEach((val, key) => {
                         currentTotals.set(key, val.data[val.data.length - 1] || 0);
                     });
 
-                    // 2. 登場した全ユーザーID
                     const allUserIds = new Set([...prevMap.keys(), ...Object.keys(userTimeBuckets).map(Number)]);
 
-                    // 3. 今回のデータセットの期間分のデータポイントを作成 (minUt ~ maxUt)
-                    // 生データが飛び飛びの場合もあるが、ここではデータが存在する ut だけ処理する簡易実装とするか、
-                    // あるいはデータ配列の長さを合わせる必要がある。
-                    // 以前のロジック: "pointsAdded = newDoTData[0].data.length" -> 他のプレイヤーも同じ長さ延ばす
+                    // 2. 重複チェック: 前回の最後と同じ時刻が今回の最初にあるか？
+                    let startIndex = 0;
+                    const lastUt = lastProcessedUtRef.current;
 
-                    // 簡易実装: 今回のバッチ処理で、存在する UT のユニークなリストを作成し、時系列順に並べる
-                    const uniqueUts = sortedUniqueUt(filteredData);
+                    if (prev.length > 0 && uniqueUts.length > 0 && uniqueUts[0] === lastUt) {
+                        // 重複あり！既存の最後のデータを更新する
+                        startIndex = 1; // ループは次の時刻から開始
 
-                    if (uniqueUts.length === 0) return Array.from(prevMap.values());
+                        // 全ユーザーの最後のデータを更新
+                        allUserIds.forEach(playerId => {
+                            let playerEntry = prevMap.get(playerId);
+                            if (playerEntry && playerEntry.data.length > 0) {
+                                const damageAtOverlap = (userTimeBuckets[playerId] && userTimeBuckets[playerId][lastUt]) || 0;
 
-                    // 各ユーザーについて、uniqueUts の各時刻でのダメージ累積を計算
-                    allUserIds.forEach(playerId => {
-                        let playerEntry = prevMap.get(playerId);
-                        if (!playerEntry) {
-                            // 新規プレイヤー
-                            // 既存のグラフの長さ分、0埋めする
-                            const existingLength = prev.length > 0 ? prev[0].data.length : 0; // 誰か一人のデータ長を参照
-                            const zeroHistory = new Array(existingLength).fill(0);
+                                // 既存の累積値に加算
+                                const lastIdx = playerEntry.data.length - 1;
+                                playerEntry.data[lastIdx] += damageAtOverlap;
 
-                            // 名前解決は後回しだが、とりあえず生データから名前を探す、なければID
-                            const pName = filteredData.find(d => d.playerId === playerId)?.playerName || `Player ${playerId}`;
+                                // ベースライン（currentTotals）も更新！
+                                currentTotals.set(playerId, playerEntry.data[lastIdx]);
+                            }
+                        });
+                    }
 
-                            playerEntry = { id: playerId, label: pName, data: zeroHistory, area: false, showMark: false };
-                            prevMap.set(playerId, playerEntry);
-                            currentTotals.set(playerId, 0); // 初期値0
-                        }
+                    // 3. 新しい時刻データを追記
+                    // データがない場合でも、他のユーザーに合わせて配列を伸ばす必要はない（Rechartsが勝手に補完するか、あるいは直前の値を維持するか）
+                    // ここでは「直前の値を維持（累積グラフなので）」する。
+                    if (uniqueUts.length > startIndex) { // Update condition to avoid processing if only overlapping data exists
+                        // 残りの時刻データを処理
+                        const timestampsToProcess = uniqueUts.slice(startIndex);
 
-                        let cumulative = currentTotals.get(playerId);
-                        const newDataPoints = uniqueUts.map(ut => { // eslint-disable-line no-unused-vars
-                            const dmg = (userTimeBuckets[playerId] && userTimeBuckets[playerId][ut]) || 0;
-                            cumulative += dmg;
-                            return cumulative;
+                        // 新規ユーザーエントリー作成
+                        allUserIds.forEach(playerId => {
+                            if (!prevMap.has(playerId)) {
+                                const pName = filteredData.find(d => d.playerId === playerId)?.playerName || `Player ${playerId}`;
+                                // 過去分は0埋め...ではなく、開始時点が遅れただけなので0スタート
+                                // ただし、既存グラフの長さに合わせる必要があるなら、それまでの累積は0として埋める
+                                // ここでは、既存のグラフの長さに合わせて、その時点での累積値を0として埋める
+                                const existingLength = prev.length > 0 ? prev[0].data.length : 0;
+                                prevMap.set(playerId, {
+                                    id: playerId,
+                                    label: pName,
+                                    data: new Array(existingLength).fill(0),
+                                    area: false,
+                                    showMark: false
+                                });
+                                currentTotals.set(playerId, 0);
+                            }
                         });
 
-                        playerEntry.data = playerEntry.data.concat(newDataPoints);
-                    });
+                        // 各時刻ごとの累積計算
+                        timestampsToProcess.forEach(ut => {
+                            allUserIds.forEach(playerId => {
+                                const playerEntry = prevMap.get(playerId);
+                                let cumulative = currentTotals.get(playerId) || 0;
+                                const dmg = (userTimeBuckets[playerId] && userTimeBuckets[playerId][ut]) || 0;
+                                cumulative += dmg;
+
+                                playerEntry.data.push(cumulative);
+                                currentTotals.set(playerId, cumulative); // 次のループのために更新
+                            });
+                        });
+                    }
 
                     return Array.from(prevMap.values());
                 });
 
+                // Update last processed UT
+                if (uniqueUts.length > 0) {
+                    lastProcessedUtRef.current = uniqueUts[uniqueUts.length - 1];
+                }
 
-                // (D) Skill Damage Aggregation - Server API Call (Matches AnalyticsMenu logic)
+                // (D) Skill Damage Aggregation - Server API Call
                 const endUT = Math.floor(Date.now() / 1000);
 
                 // Fetch Total Skill Damage
@@ -226,6 +248,7 @@ export default function LiveMenu() {
         setSkillDamageData([])
         setSkillDamageByPlayer({})
         setSelectedPlayer('__all__')
+        lastProcessedUtRef.current = null;
 
         const poll = async () => {
             await GetNewDamageData(lastFetchedIdRef.current);

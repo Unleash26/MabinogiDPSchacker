@@ -45,6 +45,9 @@
     <Compile Remove="publish_final\**" />
     <EmbeddedResource Remove="publish_final\**" />
     <None Remove="publish_final\**" />
+    <Content Include="trackerdb.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

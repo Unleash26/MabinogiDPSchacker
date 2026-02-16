@@ -13,10 +13,21 @@ $publishDir = "$serverDir\publish"
 
 # --- 0. KILL RUNNING PROCESSES ---
 Write-Host ">>> CLEAN: Killing running processes if any..." -ForegroundColor Cyan
-try { Stop-Process -Name "Mabinogi_Damage_Tracker.Server" -Force -ErrorAction SilentlyContinue } catch {}
-try { Stop-Process -Name "OverlayApp" -Force -ErrorAction SilentlyContinue } catch {}
-try { Stop-Process -Name "dotnet" -Force -ErrorAction SilentlyContinue } catch {}
-Start-Sleep -Seconds 3
+$processes = "Mabinogi_Damage_Tracker.Server", "OverlayApp", "dotnet"
+foreach ($proc in $processes) {
+    if (Get-Process -Name $proc -ErrorAction SilentlyContinue) {
+        Write-Host "Killing $proc..." -ForegroundColor Yellow
+        Stop-Process -Name $proc -Force -ErrorAction SilentlyContinue
+        
+        # Wait until it's actually gone
+        $timeout = 0
+        while ((Get-Process -Name $proc -ErrorAction SilentlyContinue) -and ($timeout -lt 10)) {
+            Start-Sleep -Milliseconds 500
+            $timeout++
+        }
+    }
+}
+Start-Sleep -Seconds 2
 
 # --- 1. CLEAN PREVIOUS BUILDS ---
 Write-Host ">>> API: Cleaning previous publish folder..." -ForegroundColor Cyan
@@ -88,13 +99,13 @@ foreach ($item in $items) {
     Move-Item -Path $item.FullName -Destination $internalDir -Force
 }
 
+
 # 2. Copy Overlay App
 # Contains OverlayApp.exe and dependencies
-# We want OverlayApp.exe in ROOT, dependencies in _internal?
-# OverlayApp (WPF) might need its dependencies next to it if not SingleFile.
-# But -p:PublishSingleFile=true was used.
-# Let's copy OverlayApp.exe to ROOT, and everything else to _internal
-
+# We want OverlayApp.exe in ROOT
+# 2. Copy Overlay App
+# Contains OverlayApp.exe and dependencies
+# We want OverlayApp.exe in ROOT
 $overlayItems = Get-ChildItem -Path "$overlayDir\publish_final"
 foreach ($item in $overlayItems) {
     if ($item.Name -like "*.exe") {
